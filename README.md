@@ -9,8 +9,24 @@ index.html        the entire app (UI + logic)
 schedule.json      your editable data — edit this to add/change plans
 manifest.json      PWA config (name, icons, theme color)
 sw.js              offline caching (service worker)
-icons/             home screen icons (192px, 512px)
+icons/             home screen icons (192px, 512px) — cropped from your photo
+images/lock-bg.jpg the passcode-screen background photo
 ```
+
+## What's interactive now
+
+- **Passcode screen**: your photo as a blurred lock-screen background with a
+  slow drift (disabled automatically if the OS "reduce motion" setting is on),
+  plus a little heart-burst animation on a correct code.
+- **Swipe gestures**: swipe left/right anywhere in the main content to move
+  between months (same as the ‹ › buttons). Swipe down on the grabber bar at
+  the top of a day's detail sheet to dismiss it, like a native bottom sheet.
+- **Haptics**: light vibration on taps (day cells, tab switch, filters, unlock)
+  on devices/browsers that support it — mostly Android Chrome; iOS Safari
+  doesn't support the vibration API, so it's silently skipped there.
+
+To swap in a different photo later, replace `images/lock-bg.jpg` and
+re-crop `icons/icon-192.png` / `icons/icon-512.png` (same filenames, square).
 
 ## Run it locally
 

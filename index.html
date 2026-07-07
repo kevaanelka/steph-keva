@@ -51,6 +51,21 @@
     .blob-1, .blob-2, .blob-3 { animation: none; }
   }
 
+  #lock-photo { animation: kenburns 26s ease-in-out infinite alternate; transform-origin: 60% 35%; }
+  @keyframes kenburns {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.14); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #lock-photo { animation: none; }
+  }
+
+  @keyframes heartFloat {
+    0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+    15% { opacity: 1; }
+    100% { transform: translateY(-65vh) scale(1.15) rotate(18deg); opacity: 0; }
+  }
+
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -89,8 +104,12 @@
   <div id="app" class="relative" style="z-index:1;">
 
     <!-- Passcode gate -->
-    <div id="gate" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6">
-      <div id="gate-card" class="glass-strong rounded-3xl p-8 w-full max-w-xs text-center">
+    <div id="gate" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6 overflow-hidden">
+      <div class="absolute inset-0">
+        <img src="./images/lock-bg.jpg" alt="" id="lock-photo" class="w-full h-full object-cover" />
+        <div class="absolute inset-0" style="background:linear-gradient(180deg, rgba(18,16,28,0.45) 0%, rgba(18,16,28,0.7) 55%, rgba(18,16,28,0.94) 100%);"></div>
+      </div>
+      <div id="gate-card" class="glass-strong rounded-3xl p-8 w-full max-w-xs text-center relative">
         <div class="text-3xl mb-3">🔒</div>
         <p class="font-display text-xl mb-1">Just for us</p>
         <p class="text-xs opacity-50 mb-6 tracking-wide">Enter the passcode</p>
@@ -150,13 +169,15 @@
 
       <div id="sheet-backdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 opacity-0 sheet-backdrop"></div>
       <div id="sheet" class="hidden fixed inset-x-0 bottom-0 z-40 sheet sheet-hidden">
-        <div class="glass-strong rounded-t-[28px] max-h-[78vh] overflow-y-auto no-scrollbar px-5 pt-4" style="padding-bottom:calc(env(safe-area-inset-bottom) + 28px);">
-          <div class="w-10 h-1.5 rounded-full bg-white/20 mx-auto mb-4"></div>
-          <div class="flex items-center justify-between mb-4">
-            <p id="sheet-date" class="font-display text-xl"></p>
-            <button id="sheet-close" class="w-8 h-8 rounded-full glass flex items-center justify-center" aria-label="Close">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
+        <div id="sheet-panel" class="glass-strong rounded-t-[28px] max-h-[78vh] overflow-y-auto no-scrollbar px-5 pt-4" style="padding-bottom:calc(env(safe-area-inset-bottom) + 28px);">
+          <div id="sheet-drag-zone" class="pt-1 pb-2 -mt-1">
+            <div class="w-10 h-1.5 rounded-full bg-white/20 mx-auto mb-4"></div>
+            <div class="flex items-center justify-between mb-4">
+              <p id="sheet-date" class="font-display text-xl"></p>
+              <button id="sheet-close" class="w-8 h-8 rounded-full glass flex items-center justify-center" aria-label="Close">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
           </div>
           <div id="sheet-body" class="pb-2"></div>
         </div>
@@ -170,7 +191,7 @@
   // ---- CHANGE ME: sha256 hex of your 4-digit passcode (default "1234") ----
   // Generate a new one in any browser console with:
   //   crypto.subtle.digest("SHA-256", new TextEncoder().encode("YOUR-CODE")).then(b=>console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("")))
-  const PASSCODE_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+  const PASSCODE_HASH = "5909daa6fb5cf239d52027367f111ecd9c280866d73f8bd47cda43ef5495af6a"; // sha256("1605")
   const AUTH_KEY = "us_schedule_auth";
 
   const state = {
@@ -180,6 +201,30 @@
     filters: new Set(),
     selectedDate: null,
   };
+
+  const REDUCE_MOTION = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function buzz(ms) {
+    if (navigator.vibrate) {
+      try { navigator.vibrate(ms || 8); } catch (e) { /* ignore */ }
+    }
+  }
+
+  function celebrateUnlock() {
+    if (REDUCE_MOTION) return;
+    const layer = document.createElement("div");
+    layer.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;";
+    document.body.appendChild(layer);
+    const emojis = ["💜", "💕", "✨"];
+    for (let i = 0; i < 14; i++) {
+      const el = document.createElement("span");
+      el.textContent = emojis[i % emojis.length];
+      const size = 14 + Math.random() * 14;
+      el.style.cssText = `position:absolute;left:${8 + Math.random() * 84}%;bottom:-8%;font-size:${size}px;opacity:0.9;animation:heartFloat ${1.6 + Math.random() * 1.2}s ease-out forwards;animation-delay:${(Math.random() * 0.3).toFixed(2)}s;`;
+      layer.appendChild(el);
+    }
+    setTimeout(() => layer.remove(), 3200);
+  }
 
   async function sha256Hex(msg) {
     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
@@ -240,8 +285,11 @@
       if (hash === PASSCODE_HASH) {
         try { localStorage.setItem(AUTH_KEY, "granted"); } catch (err) { /* storage blocked; session just won't persist */ }
         errorEl.textContent = "";
+        buzz(12);
+        celebrateUnlock();
         showShell();
       } else {
+        buzz([10, 40, 10]);
         shakeGate();
       }
     }
@@ -336,6 +384,7 @@
 
     wrap.querySelectorAll("[data-chip]").forEach((btn) => {
       btn.addEventListener("click", () => {
+        buzz(6);
         const key = btn.dataset.chip;
         if (key === "__all") {
           state.filters = new Set(Object.keys(state.data.categories));
@@ -363,6 +412,31 @@
   function renderView() {
     renderCalendar();
     renderTimeline();
+  }
+
+  function goToMonth(delta) {
+    const content = document.getElementById("content");
+    if (REDUCE_MOTION) {
+      state.month = new Date(state.month.getFullYear(), state.month.getMonth() + delta, 1);
+      renderHeader();
+      renderView();
+      return;
+    }
+    content.style.transition = "opacity .15s ease, transform .18s ease";
+    content.style.opacity = "0";
+    content.style.transform = delta < 0 ? "translateX(14px)" : "translateX(-14px)";
+    setTimeout(() => {
+      state.month = new Date(state.month.getFullYear(), state.month.getMonth() + delta, 1);
+      renderHeader();
+      renderView();
+      content.style.transition = "none";
+      content.style.transform = delta < 0 ? "translateX(-14px)" : "translateX(14px)";
+      requestAnimationFrame(() => {
+        content.style.transition = "opacity .18s ease, transform .22s cubic-bezier(.32,.72,0,1)";
+        content.style.opacity = "1";
+        content.style.transform = "translateX(0)";
+      });
+    }, 150);
   }
 
   // ---------- Calendar grid ----------
@@ -478,6 +552,7 @@
 
   // ---------- Day detail sheet ----------
   function openSheet(dateStr) {
+    buzz(8);
     state.selectedDate = dateStr;
     const evts = eventsForDate(dateStr);
     const dateObj = new Date(`${dateStr}T00:00:00`);
@@ -518,6 +593,10 @@
 
     document.getElementById("sheet-body").innerHTML = html || `<p class="text-sm opacity-60 text-center py-6">Nothing scheduled.</p>`;
 
+    const panel = document.getElementById("sheet-panel");
+    panel.style.transition = "";
+    panel.style.transform = "";
+
     const backdrop = document.getElementById("sheet-backdrop");
     const sheetEl = document.getElementById("sheet");
     backdrop.classList.remove("hidden");
@@ -531,6 +610,9 @@
   }
 
   function closeSheet() {
+    const panel = document.getElementById("sheet-panel");
+    panel.style.transition = "";
+    panel.style.transform = "";
     const backdrop = document.getElementById("sheet-backdrop");
     const sheetEl = document.getElementById("sheet");
     sheetEl.classList.add("sheet-hidden");
@@ -546,24 +628,63 @@
   // ---------- Wire up static controls ----------
   function setupShellControls() {
     document.getElementById("lock-btn").addEventListener("click", () => {
-      localStorage.removeItem(AUTH_KEY);
+      buzz(8);
+      try { localStorage.removeItem(AUTH_KEY); } catch (e) { /* ignore */ }
       showGate();
     });
-    document.getElementById("prev-month").addEventListener("click", () => {
-      state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1);
-      renderHeader();
-      renderView();
-    });
-    document.getElementById("next-month").addEventListener("click", () => {
-      state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1);
-      renderHeader();
-      renderView();
-    });
+    document.getElementById("prev-month").addEventListener("click", () => { buzz(6); goToMonth(-1); });
+    document.getElementById("next-month").addEventListener("click", () => { buzz(6); goToMonth(1); });
     document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => setActiveTab(btn.dataset.view));
+      btn.addEventListener("click", () => { buzz(6); setActiveTab(btn.dataset.view); });
     });
     document.getElementById("sheet-close").addEventListener("click", closeSheet);
     document.getElementById("sheet-backdrop").addEventListener("click", closeSheet);
+
+    // Swipe left/right on the content area to change months
+    const content = document.getElementById("content");
+    let touchStartX = 0, touchStartY = 0, touchStartT = 0;
+    content.addEventListener("touchstart", (e) => {
+      const t = e.changedTouches[0];
+      touchStartX = t.clientX; touchStartY = t.clientY; touchStartT = Date.now();
+    }, { passive: true });
+    content.addEventListener("touchend", (e) => {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      const dt = Date.now() - touchStartT;
+      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 600) {
+        buzz(6);
+        goToMonth(dx < 0 ? 1 : -1);
+      }
+    }, { passive: true });
+
+    // Swipe down on the sheet's grabber/header area to dismiss it
+    const dragZone = document.getElementById("sheet-drag-zone");
+    const panel = document.getElementById("sheet-panel");
+    let dragStartY = 0, dragY = 0, dragging = false;
+    dragZone.addEventListener("touchstart", (e) => {
+      dragging = true;
+      dragStartY = e.touches[0].clientY;
+      panel.style.transition = "none";
+    }, { passive: true });
+    dragZone.addEventListener("touchmove", (e) => {
+      if (!dragging) return;
+      dragY = Math.max(0, e.touches[0].clientY - dragStartY);
+      panel.style.transform = `translateY(${dragY}px)`;
+    }, { passive: true });
+    dragZone.addEventListener("touchend", () => {
+      if (!dragging) return;
+      dragging = false;
+      panel.style.transition = "";
+      if (dragY > 90) {
+        buzz(8);
+        panel.style.transform = "";
+        closeSheet();
+      } else {
+        panel.style.transform = "";
+      }
+      dragY = 0;
+    }, { passive: true });
   }
 
   // ---------- Init ----------
@@ -571,7 +692,8 @@
     setupAmbientBackground();
     setupGate();
     setupShellControls();
-    const authed = localStorage.getItem(AUTH_KEY) === "granted";
+    let authed = false;
+    try { authed = localStorage.getItem(AUTH_KEY) === "granted"; } catch (e) { /* storage blocked */ }
     if (authed) showShell(); else showGate();
   });
 

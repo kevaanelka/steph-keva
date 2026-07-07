@@ -1,6 +1,6 @@
 // Bump this version whenever you change index.html / schedule.json structure
 // so returning visitors get the fresh files instead of a stale cache.
-const CACHE_NAME = "us-schedule-v1";
+const CACHE_NAME = "us-schedule-v2";
 
 const APP_SHELL = [
   "./",
@@ -8,7 +8,8 @@ const APP_SHELL = [
   "./manifest.json",
   "./schedule.json",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
+  "./images/lock-bg.jpg"
 ];
 
 self.addEventListener("install", (event) => {
