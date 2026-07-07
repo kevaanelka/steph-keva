@@ -1,6 +1,6 @@
 // Bump this version whenever you change index.html / schedule.json structure
 // so returning visitors get the fresh files instead of a stale cache.
-const CACHE_NAME = "us-schedule-v2";
+const CACHE_NAME = "us-schedule-v3";
 
 const APP_SHELL = [
   "./",
@@ -30,12 +30,16 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Network-first for schedule.json (so edits show up quickly),
-// cache-first for everything else in the app shell.
+// Network-first for the app shell (HTML/manifest/data) so you always get the
+// latest version when online — the cache is only a fallback for offline use.
+// Cache-first only for heavy, rarely-changing static assets (icons/photo).
+const NETWORK_FIRST_SUFFIXES = ["schedule.json", "index.html", "manifest.json", "/"];
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
+  const isNetworkFirst = NETWORK_FIRST_SUFFIXES.some((s) => url.pathname === s || url.pathname.endsWith(s));
 
-  if (url.pathname.endsWith("schedule.json")) {
+  if (isNetworkFirst) {
     event.respondWith(
       fetch(event.request)
         .then((res) => {
