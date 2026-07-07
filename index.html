@@ -128,17 +128,26 @@
 
       <header class="px-5 pb-4" style="padding-top:calc(env(safe-area-inset-top) + 18px);">
         <div class="flex items-center justify-between mb-4">
-          <h1 class="font-display text-2xl">Our Schedule</h1>
-          <button id="lock-btn" class="w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Lock app">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-          </button>
+          <div class="flex items-center gap-2.5">
+            <img src="./icons/icon-192.png" alt="" class="w-9 h-9 rounded-full object-cover" style="border:1.5px solid rgba(255,255,255,0.25);" />
+            <h1 class="font-display text-2xl">Our Schedule</h1>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="sound-toggle" class="tap-fx w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Toggle sound">
+              <svg id="sound-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
+              <svg id="sound-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>
+            </button>
+            <button id="lock-btn" class="tap-fx w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Lock app">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            </button>
+          </div>
         </div>
         <div class="flex items-center justify-between glass rounded-2xl px-2 py-2">
-          <button id="prev-month" class="w-9 h-9 rounded-xl flex items-center justify-center active:bg-white/10" aria-label="Previous month">
+          <button id="prev-month" class="tap-fx w-9 h-9 rounded-xl flex items-center justify-center active:bg-white/10" aria-label="Previous month">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <span id="month-label" class="text-sm font-semibold tracking-wide"></span>
-          <button id="next-month" class="w-9 h-9 rounded-xl flex items-center justify-center active:bg-white/10" aria-label="Next month">
+          <button id="next-month" class="tap-fx w-9 h-9 rounded-xl flex items-center justify-center active:bg-white/10" aria-label="Next month">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
@@ -174,7 +183,7 @@
             <div class="w-10 h-1.5 rounded-full bg-white/20 mx-auto mb-4"></div>
             <div class="flex items-center justify-between mb-4">
               <p id="sheet-date" class="font-display text-xl"></p>
-              <button id="sheet-close" class="w-8 h-8 rounded-full glass flex items-center justify-center" aria-label="Close">
+              <button id="sheet-close" class="tap-fx w-8 h-8 rounded-full glass flex items-center justify-center" aria-label="Close">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
@@ -210,20 +219,112 @@
     }
   }
 
+  // ---------- Sound (synthesized — no audio files to fetch/cache) ----------
+  const SOUND_KEY = "us_schedule_sound";
+  let soundOn = true;
+  try { soundOn = localStorage.getItem(SOUND_KEY) !== "off"; } catch (e) { /* ignore */ }
+
+  let audioCtx = null;
+  function primeAudio() {
+    // Must be called synchronously inside a real user gesture for iOS Safari to allow audio later.
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+    } catch (e) { /* ignore */ }
+  }
+
+  function playTone(freqs, opts) {
+    opts = opts || {};
+    if (!soundOn || !audioCtx) return;
+    try {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const now = audioCtx.currentTime;
+      const gap = opts.gap != null ? opts.gap : 0.1;
+      const dur = opts.dur != null ? opts.dur : 0.24;
+      const vol = opts.vol != null ? opts.vol : 0.05;
+      freqs.forEach((f, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = opts.type || "sine";
+        osc.frequency.value = f;
+        const t0 = now + i * gap;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.linearRampToValueAtTime(vol, t0 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(t0);
+        osc.stop(t0 + dur + 0.03);
+      });
+    } catch (e) { /* ignore */ }
+  }
+
+  function playUnlockChime() { playTone([523.25, 659.25, 783.99], { gap: 0.1, dur: 0.55, vol: 0.05 }); }
+  function playDateChime() { playTone([659.25, 783.99, 987.77, 1174.66], { gap: 0.075, dur: 0.35, vol: 0.035 }); }
+
+  function setSoundUI() {
+    document.getElementById("sound-icon-on").classList.toggle("hidden", !soundOn);
+    document.getElementById("sound-icon-off").classList.toggle("hidden", soundOn);
+  }
+
+  // ---------- Tap ripple (visible feedback on every interactive tap) ----------
+  function addRipple(el, x, y) {
+    const rect = el.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    if (getComputedStyle(el).position === "static") el.style.position = "relative";
+    el.style.overflow = "hidden";
+    const size = Math.max(rect.width, rect.height) * 1.5;
+    const ripple = document.createElement("span");
+    ripple.style.cssText = `position:absolute;left:${x - rect.left - size / 2}px;top:${y - rect.top - size / 2}px;width:${size}px;height:${size}px;border-radius:9999px;background:rgba(255,255,255,0.22);pointer-events:none;transform:scale(0);opacity:1;transition:transform .45s cubic-bezier(.32,.72,0,1),opacity .45s ease;`;
+    el.appendChild(ripple);
+    requestAnimationFrame(() => { ripple.style.transform = "scale(1)"; ripple.style.opacity = "0"; });
+    setTimeout(() => ripple.remove(), 480);
+  }
+
+  function setupRipples() {
+    document.addEventListener("pointerdown", (e) => {
+      const el = e.target.closest(".day-cell, .chip, .tab-btn, .tap-fx");
+      if (!el) return;
+      addRipple(el, e.clientX, e.clientY);
+    });
+  }
+
+  // ---------- Unlock celebration ----------
   function celebrateUnlock() {
-    if (REDUCE_MOTION) return;
+    playUnlockChime();
+
+    // Warm radial flash — brief, not continuous, so it still runs under reduced-motion
+    const flash = document.createElement("div");
+    flash.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:59;background:radial-gradient(circle at 50% 40%, rgba(255,111,145,0.4), rgba(124,92,252,0.15) 45%, transparent 72%);opacity:0;transition:opacity .3s ease;";
+    document.body.appendChild(flash);
+    requestAnimationFrame(() => { flash.style.opacity = "1"; });
+    setTimeout(() => { flash.style.opacity = "0"; }, 380);
+    setTimeout(() => flash.remove(), 800);
+
+    // Big center heart pulse
+    const big = document.createElement("div");
+    big.textContent = "💜";
+    big.style.cssText = "position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(0.2);font-size:60px;z-index:61;pointer-events:none;opacity:0;transition:transform .5s cubic-bezier(.34,1.56,.64,1), opacity .35s ease;";
+    document.body.appendChild(big);
+    requestAnimationFrame(() => { big.style.transform = "translate(-50%,-50%) scale(1.1)"; big.style.opacity = "1"; });
+    setTimeout(() => { big.style.opacity = "0"; }, 550);
+    setTimeout(() => big.remove(), 1000);
+
+    if (REDUCE_MOTION) return; // skip the floating shower only — flash/pulse/chime above already ran
+
     const layer = document.createElement("div");
     layer.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;";
     document.body.appendChild(layer);
-    const emojis = ["💜", "💕", "✨"];
-    for (let i = 0; i < 14; i++) {
+    const emojis = ["💜", "💕", "✨", "💗"];
+    for (let i = 0; i < 18; i++) {
       const el = document.createElement("span");
       el.textContent = emojis[i % emojis.length];
-      const size = 14 + Math.random() * 14;
-      el.style.cssText = `position:absolute;left:${8 + Math.random() * 84}%;bottom:-8%;font-size:${size}px;opacity:0.9;animation:heartFloat ${1.6 + Math.random() * 1.2}s ease-out forwards;animation-delay:${(Math.random() * 0.3).toFixed(2)}s;`;
+      const size = 14 + Math.random() * 18;
+      el.style.cssText = `position:absolute;left:${5 + Math.random() * 90}%;bottom:-8%;font-size:${size}px;opacity:0.9;animation:heartFloat ${1.7 + Math.random() * 1.3}s ease-out forwards;animation-delay:${(Math.random() * 0.4).toFixed(2)}s;`;
       layer.appendChild(el);
     }
-    setTimeout(() => layer.remove(), 3200);
+    setTimeout(() => layer.remove(), 3400);
   }
 
   async function sha256Hex(msg) {
@@ -295,7 +396,9 @@
     }
 
     boxes.forEach((box, i) => {
+      box.addEventListener("touchstart", primeAudio, { passive: true, once: true });
       box.addEventListener("input", () => {
+        primeAudio();
         box.value = box.value.replace(/[^0-9]/g, "").slice(0, 1);
         errorEl.textContent = "";
         if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
@@ -597,6 +700,14 @@
     panel.style.transition = "";
     panel.style.transform = "";
 
+    const isDateDay = evts.some((e) => e.category === "date");
+    if (isDateDay) {
+      panel.style.boxShadow = "0 -14px 46px rgba(255,111,145,0.28)";
+      playDateChime();
+    } else {
+      panel.style.boxShadow = "";
+    }
+
     const backdrop = document.getElementById("sheet-backdrop");
     const sheetEl = document.getElementById("sheet");
     backdrop.classList.remove("hidden");
@@ -627,6 +738,15 @@
 
   // ---------- Wire up static controls ----------
   function setupShellControls() {
+    setSoundUI();
+    document.getElementById("sound-toggle").addEventListener("click", () => {
+      primeAudio();
+      soundOn = !soundOn;
+      try { localStorage.setItem(SOUND_KEY, soundOn ? "on" : "off"); } catch (e) { /* ignore */ }
+      setSoundUI();
+      buzz(6);
+      if (soundOn) playDateChime();
+    });
     document.getElementById("lock-btn").addEventListener("click", () => {
       buzz(8);
       try { localStorage.removeItem(AUTH_KEY); } catch (e) { /* ignore */ }
@@ -692,6 +812,8 @@
     setupAmbientBackground();
     setupGate();
     setupShellControls();
+    setupRipples();
+    document.addEventListener("touchstart", primeAudio, { passive: true, once: true });
     let authed = false;
     try { authed = localStorage.getItem(AUTH_KEY) === "granted"; } catch (e) { /* storage blocked */ }
     if (authed) showShell(); else showGate();
