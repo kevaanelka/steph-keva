@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "title": "Our Schedule",
+    "timezone": "Asia/Jakarta",
+    "weekStartsOn": "sunday"
+  },
+  "categories": {
+    "sports": { "label": "Sports", "color": "#2DD9C4", "emoji": "🏃" },
+    "social": { "label": "Social", "color": "#FFB454", "emoji": "🎉" },
+    "church": { "label": "Church", "color": "#7C5CFC", "emoji": "🙏" },
+    "date": { "label": "Date", "color": "#FF6F91", "emoji": "💕" },
+    "other": { "label": "Other", "color": "#9CA3AF", "emoji": "✨" }
+  },
+  "events": [
+    {
+      "id": "20260711-1",
+      "date": "2026-07-11",
+      "block": ["morning"],
+      "category": "sports",
+      "title": "Tennis",
+      "note": "Unconfirmed — marked with '?' in original notes"
+    },
+    {
+      "id": "20260711-2",
+      "date": "2026-07-11",
+      "block": ["afternoon"],
+      "category": "social",
+      "title": "Hangout — Arnold & friends",
+      "note": ""
+    },
+    {
+      "id": "20260711-3",
+      "date": "2026-07-11",
+      "block": ["night"],
+      "category": "social",
+      "title": "Hangout — Randy & friends",
+      "note": ""
+    },
+    {
+      "id": "20260712-1",
+      "date": "2026-07-12",
+      "block": ["morning"],
+      "category": "church",
+      "title": "Church — Depok",
+      "note": ""
+    },
+    {
+      "id": "20260712-2",
+      "date": "2026-07-12",
+      "block": ["afternoon"],
+      "category": "sports",
+      "title": "Run — GBK",
+      "note": "With SoC (Servants of Christ) group"
+    },
+    {
+      "id": "20260714-1",
+      "date": "2026-07-14",
+      "block": ["anytime"],
+      "category": "sports",
+      "title": "Run — GBK",
+      "note": ""
+    },
+    {
+      "id": "20260716-1",
+      "date": "2026-07-16",
+      "block": ["anytime"],
+      "category": "other",
+      "title": "Dreamstone",
+      "note": "Details TBD — add a note here once confirmed"
+    },
+    {
+      "id": "20260717-1",
+      "date": "2026-07-17",
+      "block": ["anytime"],
+      "category": "church",
+      "title": "Orphanage visit",
+      "note": ""
+    },
+    {
+      "id": "20260717-2",
+      "date": "2026-07-17",
+      "block": ["anytime"],
+      "category": "church",
+      "title": "SoC Bekasi",
+      "note": ""
+    },
+    {
+      "id": "20260718-1",
+      "date": "2026-07-18",
+      "block": ["anytime"],
+      "category": "date",
+      "title": "Date night",
+      "note": "Location TBD"
+    },
+    {
+      "id": "20260721-1",
+      "date": "2026-07-21",
+      "block": ["anytime"],
+      "category": "sports",
+      "title": "Run — GBK",
+      "note": ""
+    },
+    {
+      "id": "20260722-1",
+      "date": "2026-07-22",
+      "block": ["anytime"],
+      "category": "church",
+      "title": "SoC Jakarta",
+      "note": ""
+    },
+    {
+      "id": "20260723-1",
+      "date": "2026-07-23",
+      "block": ["anytime"],
+      "category": "sports",
+      "title": "Run — GBK",
+      "note": ""
+    },
+    {
+      "id": "20260725-1",
+      "date": "2026-07-25",
+      "block": ["morning", "afternoon"],
+      "category": "social",
+      "title": "Christi Riama",
+      "note": ""
+    },
+    {
+      "id": "20260725-2",
+      "date": "2026-07-25",
+      "block": ["afternoon", "night"],
+      "category": "church",
+      "title": "Worship night",
+      "note": ""
+    },
+    {
+      "id": "20260728-1",
+      "date": "2026-07-28",
+      "block": ["anytime"],
+      "category": "sports",
+      "title": "Run — GBK",
+      "note": ""
+    },
+    {
+      "id": "20260730-1",
+      "date": "2026-07-30",
+      "block": ["anytime"],
+      "category": "sports",
+      "title": "Run — GBK",
+      "note": ""
+    },
+    {
+      "id": "20260731-1",
+      "date": "2026-07-31",
+      "block": ["anytime"],
+      "category": "church",
+      "title": "SoC Bekasi",
+      "note": ""
+    }
+  ]
+}
