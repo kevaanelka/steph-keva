@@ -21,227 +21,263 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="./firebase-config.js"></script>
 <style>
-  html, body { height: 100%; overscroll-behavior: none; }
-  body {
-    margin: 0;
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    background: #12101C;
-    color: #E7E4F4;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .font-display { font-family: 'Fraunces', serif; font-style: italic; }
+html, body { height: 100%; overscroll-behavior: none; }
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: #09090b; 
+  color: #E7E4F4;
+  -webkit-tap-highlight-color: transparent;
+}
+.font-display { font-family: 'Fraunces', serif; font-style: italic; }
 
-  .glass {
-    background: rgba(255,255,255,0.055);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-  .glass-strong {
-    background: rgba(255,255,255,0.09);
-    backdrop-filter: blur(26px);
-    -webkit-backdrop-filter: blur(26px);
-    border: 1px solid rgba(255,255,255,0.12);
-  }
+/* Removes mobile Safari default gray tap flash */
+button, input, .category-button, .tap-fx {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  outline: none;
+}
 
-  .blob { position: absolute; border-radius: 9999px; filter: blur(75px); opacity: 0.5; will-change: transform; }
-  @keyframes floatA { 0%,100% { transform: translate(0,0); } 50% { transform: translate(26px,-34px); } }
-  @keyframes floatB { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-34px,26px); } }
-  @keyframes floatC { 0%,100% { transform: translate(0,0); } 50% { transform: translate(18px,22px); } }
-  .blob-1 { animation: floatA 22s ease-in-out infinite; }
-  .blob-2 { animation: floatB 26s ease-in-out infinite; }
-  .blob-3 { animation: floatC 19s ease-in-out infinite; }
-  @media (prefers-reduced-motion: reduce) {
-    .blob-1, .blob-2, .blob-3 { animation: none; }
-  }
+/* Enhanced Ultra-Glassmorphism Styling */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.glass-strong {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
 
-  #lock-photo { animation: kenburns 26s ease-in-out infinite alternate; transform-origin: 60% 35%; }
-  @keyframes kenburns {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.14); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #lock-photo { animation: none; }
-  }
+.blob { position: absolute; border-radius: 9999px; filter: blur(120px); opacity: 0.12; will-change: transform; }
+@keyframes floatA { 0%,100% { transform: translate(0,0); } 50% { transform: translate(26px,-34px); } }
+@keyframes floatB { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-34px,26px); } }
+@keyframes floatC { 0%,100% { transform: translate(0,0); } 50% { transform: translate(18px,22px); } }
+.blob-1 { animation: floatA 22s ease-in-out infinite; }
+.blob-2 { animation: floatB 26s ease-in-out infinite; }
+.blob-3 { animation: floatC 19s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .blob-1, .blob-2, .blob-3 { animation: none; }
+}
 
-  @keyframes heartFloat {
-    0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
-    15% { opacity: 1; }
-    100% { transform: translateY(-65vh) scale(1.15) rotate(18deg); opacity: 0; }
-  }
+#lock-photo { animation: kenburns 26s ease-in-out infinite alternate; transform-origin: 60% 35%; }
+@keyframes kenburns {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.14); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #lock-photo { animation: none; }
+}
 
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+@keyframes heartFloat {
+  0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-65vh) scale(1.15) rotate(18deg); opacity: 0; }
+}
 
-  @keyframes shake {
-    10%, 90% { transform: translateX(-2px); }
-    20%, 80% { transform: translateX(4px); }
-    30%, 50%, 70% { transform: translateX(-7px); }
-    40%, 60% { transform: translateX(7px); }
-  }
-  .shake { animation: shake 0.4s; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  .sheet { transition: transform .38s cubic-bezier(.32,.72,0,1); }
-  .sheet-hidden { transform: translateY(100%); }
-  .sheet-backdrop { transition: opacity .3s ease; }
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-7px); }
+  40%, 60% { transform: translateX(7px); }
+}
+.shake { animation: shake 0.4s; }
 
-  .day-cell { transition: transform .15s ease, opacity .2s ease; }
-  .day-cell:active { transform: scale(0.94); }
-  .chip { transition: all .2s ease; }
-  .chip:active { transform: scale(0.93); }
+/* Native-feel iOS Spring Physics Transitions */
+.sheet { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+.sheet-hidden { transform: translateY(100%); }
+.sheet-backdrop { transition: opacity .3s ease; }
 
-  input:focus-visible, button:focus-visible {
-    outline: 2px solid #7C5CFC;
-    outline-offset: 2px;
-  }
-  .passcode-box { caret-color: #7C5CFC; }
+.day-cell { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), opacity .2s ease; }
+.day-cell:active { transform: scale(0.96); }
+.chip { transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); transform: translateZ(0); }
+.chip:active { transform: scale(0.95); }
+.tap-fx { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
+.tap-fx:active { transform: scale(0.96); }
+
+/* Floating micro-feedback toast alerts */
+#toast-notification {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom) + 90px);
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(24, 22, 38, 0.92);
+  color: #E7E4F4;
+  padding: 12px 26px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.1);
+  z-index: 9999;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+  opacity: 0;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+#toast-notification.toast-show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+input:focus-visible, button:focus-visible {
+  outline: 2px solid #7C5CFC;
+  outline-offset: 2px;
+}
+.passcode-box { caret-color: #7C5CFC; }
 </style>
 </head>
 <body>
 
-  <div class="fixed inset-0 overflow-hidden pointer-events-none" style="z-index:0;">
-    <div id="blob-1" class="blob blob-1" style="width:260px;height:260px;top:-60px;left:-50px;"></div>
-    <div id="blob-2" class="blob blob-2" style="width:300px;height:300px;bottom:60px;right:-90px;"></div>
-    <div id="blob-3" class="blob blob-3" style="width:220px;height:220px;bottom:-70px;left:28%;"></div>
+<div class="fixed inset-0 overflow-hidden pointer-events-none bg-[#09090b]" style="z-index:0;">
+  <div id="blob-1" class="blob blob-1 animate-pulse" style="width:60vw;height:60vw;top:-20%;left:-10%;background:#7C5CFC;animation-duration:8s;"></div>
+  <div id="blob-2" class="blob blob-2 animate-pulse" style="width:50vw;height:50vw;bottom:-10%;right:-10%;background:#FF6F91;animation-duration:12s;"></div>
+  <div id="blob-3" class="blob blob-3" style="width:40vw;height:40vw;bottom:-15%;left:20%;background:#2DD9C4;"></div>
+</div>
+
+<div id="app" class="relative" style="z-index:1;">
+
+  <div id="gate" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6 overflow-hidden">
+    <div class="absolute inset-0">
+      <img src="./images/lock-bg.jpg" alt="" id="lock-photo" class="w-full h-full object-cover" />
+      <div class="absolute inset-0" style="background:linear-gradient(180deg, rgba(18,16,28,0.45) 0%, rgba(18,16,28,0.7) 55%, rgba(18,16,28,0.94) 100%);"></div>
+    </div>
+    <div id="gate-card" class="glass-strong rounded-3xl p-8 w-full max-w-xs text-center relative">
+      <div class="text-3xl mb-3">🔒</div>
+      <p class="font-display text-xl mb-1">Just for us</p>
+      <p class="text-xs opacity-50 mb-6 tracking-wide">Enter the passcode</p>
+      <div class="flex justify-center gap-3 mb-5">
+        <input data-idx="0" class="passcode-box w-12 h-14 rounded-2xl glass text-center text-2xl font-semibold" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input data-idx="1" class="passcode-box w-12 h-14 rounded-2xl glass text-center text-2xl font-semibold" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input data-idx="2" class="passcode-box w-12 h-14 rounded-2xl glass text-center text-2xl font-semibold" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input data-idx="3" class="passcode-box w-12 h-14 rounded-2xl glass text-center text-2xl font-semibold" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+      </div>
+      <p id="gate-error" class="text-xs h-4" style="color:#FF6F91"></p>
+    </div>
   </div>
 
-  <div id="app" class="relative" style="z-index:1;">
+  <div id="shell" class="hidden flex flex-col" style="min-height:100vh;">
 
-    <!-- Passcode gate -->
-    <div id="gate" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6 overflow-hidden">
-      <div class="absolute inset-0">
-        <img src="./images/lock-bg.jpg" alt="" id="lock-photo" class="w-full h-full object-cover" />
-        <div class="absolute inset-0" style="background:linear-gradient(180deg, rgba(18,16,28,0.45) 0%, rgba(18,16,28,0.7) 55%, rgba(18,16,28,0.94) 100%);"></div>
-      </div>
-      <div id="gate-card" class="glass-strong rounded-3xl p-8 w-full max-w-xs text-center relative">
-        <div class="text-3xl mb-3">🔒</div>
-        <p class="font-display text-xl mb-1">Just for us</p>
-        <p class="text-xs opacity-50 mb-6 tracking-wide">Enter the passcode</p>
-        <div class="flex justify-center gap-3 mb-5">
-          <input data-idx="0" class="passcode-box w-12 h-14 rounded-2xl glass text-center text-2xl font-semibold" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
-          <input data-idx="1" class="passcode-box w-12 h-14 rounded-2xl glass text-center text-2xl font-semibold" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
-          <input data-idx="2" class="passcode-box w-12 h-14 rounded-2xl glass text-center text-2xl font-semibold" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
-          <input data-idx="3" class="passcode-box w-12 h-14 rounded-2xl glass text-center text-2xl font-semibold" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+    <header class="px-5 pb-4" style="padding-top:calc(env(safe-area-inset-top) + 18px);">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <img src="./icons/icon-192.png" alt="" class="w-9 h-9 rounded-full object-cover" style="border:1.5px solid rgba(255,255,255,0.25);" />
+          <h1 class="font-display text-2xl">Our Schedule</h1>
         </div>
-        <p id="gate-error" class="text-xs h-4" style="color:#FF6F91"></p>
+        <div class="flex items-center gap-2">
+          <button id="sound-toggle" class="tap-fx w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Toggle sound">
+            <svg id="sound-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
+            <svg id="sound-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>
+          </button>
+          <button id="lock-btn" class="tap-fx w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Lock app">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </button>
+        </div>
       </div>
+      <div class="flex items-center justify-between glass rounded-2xl px-2 py-2">
+        <button id="prev-month" class="tap-fx w-9 h-9 rounded-xl flex items-center justify-center active:bg-white/10" aria-label="Previous month">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span id="month-label" class="text-sm font-semibold tracking-wide"></span>
+        <button id="next-month" class="tap-fx w-9 h-9 rounded-xl flex items-center justify-center active:bg-white/10" aria-label="Next month">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="px-5 pb-3">
+      <div id="chips" class="flex flex-wrap gap-2"></div>
     </div>
 
-    <!-- Main shell -->
-    <div id="shell" class="hidden flex flex-col" style="min-height:100vh;">
+    <main id="content" class="flex-1 overflow-y-auto no-scrollbar px-5" style="padding-bottom:9rem;">
+      <div id="today-banner" class="hidden glass rounded-2xl px-4 py-3 mb-3" style="border:1px solid rgba(255,111,145,0.18);"></div>
+      <div id="view-calendar"></div>
+      <div id="view-timeline" class="hidden"></div>
+    </main>
 
-      <header class="px-5 pb-4" style="padding-top:calc(env(safe-area-inset-top) + 18px);">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2.5">
-            <img src="./icons/icon-192.png" alt="" class="w-9 h-9 rounded-full object-cover" style="border:1.5px solid rgba(255,255,255,0.25);" />
-            <h1 class="font-display text-2xl">Our Schedule</h1>
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="sound-toggle" class="tap-fx w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Toggle sound">
-              <svg id="sound-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
-              <svg id="sound-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>
-            </button>
-            <button id="lock-btn" class="tap-fx w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Lock app">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="flex items-center justify-between glass rounded-2xl px-2 py-2">
-          <button id="prev-month" class="tap-fx w-9 h-9 rounded-xl flex items-center justify-center active:bg-white/10" aria-label="Previous month">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <span id="month-label" class="text-sm font-semibold tracking-wide"></span>
-          <button id="next-month" class="tap-fx w-9 h-9 rounded-xl flex items-center justify-center active:bg-white/10" aria-label="Next month">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-        </div>
-      </header>
+    <button id="fab-add" class="tap-fx fixed z-20 rounded-full flex items-center justify-center" style="right:20px; bottom:calc(env(safe-area-inset-bottom) + 92px); width:56px; height:56px; background:linear-gradient(135deg, #7C5CFC, #FF6F91); box-shadow:0 8px 24px rgba(124,92,252,0.45);" aria-label="Add a plan">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
 
-      <div class="px-5 pb-3">
-        <div id="chips" class="flex flex-wrap gap-2"></div>
+    <nav class="fixed bottom-0 inset-x-0 z-20 px-6" style="padding-bottom:calc(env(safe-area-inset-bottom) + 16px); padding-top:10px;">
+      <div class="glass-strong rounded-full p-1 flex relative max-w-xs mx-auto">
+        <div id="tab-indicator" class="absolute top-1 bottom-1 left-1 rounded-full" style="width:calc(50% - 4px); background:rgba(255,255,255,0.16); transition: transform .3s cubic-bezier(.32,.72,0,1);"></div>
+        <button data-view="calendar" class="tab-btn flex-1 py-2.5 rounded-full text-sm font-semibold relative z-10 flex items-center justify-center gap-1.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          Calendar
+        </button>
+        <button data-view="timeline" class="tab-btn flex-1 py-2.5 rounded-full text-sm font-semibold relative z-10 flex items-center justify-center gap-1.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          List
+        </button>
       </div>
+    </nav>
 
-      <main id="content" class="flex-1 overflow-y-auto no-scrollbar px-5" style="padding-bottom:9rem;">
-        <div id="today-banner" class="hidden glass rounded-2xl px-4 py-3 mb-3" style="border:1px solid rgba(255,111,145,0.18);"></div>
-        <div id="view-calendar"></div>
-        <div id="view-timeline" class="hidden"></div>
-      </main>
-
-      <button id="fab-add" class="tap-fx fixed z-20 rounded-full flex items-center justify-center" style="right:20px; bottom:calc(env(safe-area-inset-bottom) + 92px); width:56px; height:56px; background:linear-gradient(135deg, #7C5CFC, #FF6F91); box-shadow:0 8px 24px rgba(124,92,252,0.45);" aria-label="Add a plan">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
-
-      <nav class="fixed bottom-0 inset-x-0 z-20 px-6" style="padding-bottom:calc(env(safe-area-inset-bottom) + 16px); padding-top:10px;">
-        <div class="glass-strong rounded-full p-1 flex relative max-w-xs mx-auto">
-          <div id="tab-indicator" class="absolute top-1 bottom-1 left-1 rounded-full" style="width:calc(50% - 4px); background:rgba(255,255,255,0.16); transition: transform .3s cubic-bezier(.32,.72,0,1);"></div>
-          <button data-view="calendar" class="tab-btn flex-1 py-2.5 rounded-full text-sm font-semibold relative z-10 flex items-center justify-center gap-1.5">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
-            Calendar
-          </button>
-          <button data-view="timeline" class="tab-btn flex-1 py-2.5 rounded-full text-sm font-semibold relative z-10 flex items-center justify-center gap-1.5">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
-            List
-          </button>
-        </div>
-      </nav>
-
-      <div id="sheet-backdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 opacity-0 sheet-backdrop"></div>
-      <div id="sheet" class="hidden fixed inset-x-0 bottom-0 z-40 sheet sheet-hidden">
-        <div id="sheet-panel" class="glass-strong rounded-t-[28px] max-h-[78vh] overflow-y-auto no-scrollbar px-5 pt-4" style="padding-bottom:calc(env(safe-area-inset-bottom) + 28px);">
-          <div id="sheet-drag-zone" class="pt-1 pb-2 -mt-1">
-            <div class="w-10 h-1.5 rounded-full bg-white/20 mx-auto mb-4"></div>
-            <div class="flex items-center justify-between mb-4">
-              <p id="sheet-date" class="font-display text-xl"></p>
-              <button id="sheet-close" class="tap-fx w-8 h-8 rounded-full glass flex items-center justify-center" aria-label="Close">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
-            </div>
-          </div>
-          <div id="sheet-body" class="pb-2"></div>
-        </div>
-      </div>
-
-      <div id="form-backdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 opacity-0 sheet-backdrop"></div>
-      <div id="form-sheet" class="hidden fixed inset-x-0 bottom-0 z-40 sheet sheet-hidden">
-        <div id="form-panel" class="glass-strong rounded-t-[28px] max-h-[85vh] overflow-y-auto no-scrollbar px-5 pt-4" style="padding-bottom:calc(env(safe-area-inset-bottom) + 28px);">
+    <div id="sheet-backdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 opacity-0 sheet-backdrop"></div>
+    <div id="sheet" class="hidden fixed inset-x-0 bottom-0 z-40 sheet sheet-hidden">
+      <div id="sheet-panel" class="glass-strong rounded-t-[28px] max-h-[78vh] overflow-y-auto no-scrollbar px-5 pt-4" style="padding-bottom:calc(env(safe-area-inset-bottom) + 28px);">
+        <div id="sheet-drag-zone" class="pt-1 pb-2 -mt-1">
           <div class="w-10 h-1.5 rounded-full bg-white/20 mx-auto mb-4"></div>
           <div class="flex items-center justify-between mb-4">
-            <p id="form-title-label" class="font-display text-xl">New plan</p>
-            <button id="form-close" class="tap-fx w-8 h-8 rounded-full glass flex items-center justify-center" aria-label="Close">
+            <p id="sheet-date" class="font-display text-xl"></p>
+            <button id="sheet-close" class="tap-fx w-8 h-8 rounded-full glass flex items-center justify-center" aria-label="Close">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
           </div>
-
-          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Date</label>
-          <input id="form-date" type="date" class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-4" style="color-scheme: dark;" />
-
-          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">When</label>
-          <div id="form-block-chips" class="flex flex-wrap gap-2 mb-4"></div>
-
-          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Category</label>
-          <div id="form-category-chips" class="flex flex-wrap gap-2 mb-4"></div>
-
-          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">What's happening</label>
-          <input id="form-title-input" type="text" maxlength="80" placeholder="e.g. Dinner at..." class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-4" />
-
-          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Note (optional)</label>
-          <input id="form-note-input" type="text" maxlength="140" placeholder="Add a detail..." class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-2" />
-
-          <p id="form-error" class="text-xs h-4 mt-1 mb-2" style="color:#FF6F91"></p>
-
-          <button id="form-save" class="tap-fx w-full py-3.5 rounded-2xl text-sm font-bold mt-2" style="background:linear-gradient(135deg, #7C5CFC, #FF6F91); color:white;">Save</button>
-          <button id="form-delete" class="hidden tap-fx w-full py-3 rounded-2xl text-sm font-semibold mt-2.5" style="background:rgba(255,111,145,0.12); color:#FF6F91;">Delete plan</button>
         </div>
+        <div id="sheet-body" class="pb-2"></div>
       </div>
-
     </div>
+
+    <div id="form-backdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 opacity-0 sheet-backdrop"></div>
+    <div id="form-sheet" class="hidden fixed inset-x-0 bottom-0 z-40 sheet sheet-hidden">
+      <div id="form-panel" class="glass-strong rounded-t-[28px] max-h-[85vh] overflow-y-auto no-scrollbar px-5 pt-4" style="padding-bottom:calc(env(safe-area-inset-bottom) + 28px);">
+        <div class="w-10 h-1.5 rounded-full bg-white/20 mx-auto mb-4"></div>
+        <div class="flex items-center justify-between mb-4">
+          <p id="form-title-label" class="font-display text-xl">New plan</p>
+          <button id="form-close" class="tap-fx w-8 h-8 rounded-full glass flex items-center justify-center" aria-label="Close">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Date</label>
+        <input id="form-date" type="date" class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-4" style="color-scheme: dark;" />
+
+        <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">When</label>
+        <div id="form-block-chips" class="flex flex-wrap gap-2 mb-4"></div>
+
+        <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Category</label>
+        <div id="form-category-chips" class="flex flex-wrap gap-2 mb-4"></div>
+
+        <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">What's happening</label>
+        <input id="form-title-input" type="text" maxlength="80" placeholder="e.g. Dinner at..." class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-4" />
+
+        <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Note (optional)</label>
+        <input id="form-note-input" type="text" maxlength="140" placeholder="Add a detail..." class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-2" />
+
+        <p id="form-error" class="text-xs h-4 mt-1 mb-2" style="color:#FF6F91"></p>
+
+        <button id="form-save" class="tap-fx w-full py-3.5 rounded-2xl text-sm font-bold mt-2" style="background:linear-gradient(135deg, #7C5CFC, #FF6F91); color:white;">Save</button>
+        <button id="form-delete" class="hidden tap-fx w-full py-3 rounded-2xl text-sm font-semibold mt-2.5" style="background:rgba(255,111,145,0.12); color:#FF6F91;">Delete plan</button>
+      </div>
+    </div>
+
   </div>
+</div>
+
+<div id="toast-notification">✨ Plan saved successfully!</div>
 
 <script>
 (function () {
   // ---- CHANGE ME: sha256 hex of your 4-digit passcode (default "1234") ----
-  // Generate a new one in any browser console with:
-  //   crypto.subtle.digest("SHA-256", new TextEncoder().encode("YOUR-CODE")).then(b=>console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("")))
   const PASSCODE_HASH = "5909daa6fb5cf239d52027367f111ecd9c280866d73f8bd47cda43ef5495af6a"; // sha256("1605")
   const AUTH_KEY = "us_schedule_auth";
 
@@ -254,8 +290,6 @@
     other: { label: "Other", color: "#9CA3AF", emoji: "✨" },
   };
 
-  // One-time seed if the shared database is empty (fresh Firebase project) —
-  // this is your original July 2026 schedule so nothing gets lost switching over.
   const SEED_EVENTS = [
     { date: "2026-07-11", block: ["morning"], category: "sports", title: "Tennis", note: "Unconfirmed — marked with '?' in original notes" },
     { date: "2026-07-11", block: ["afternoon"], category: "social", title: "Hangout — Arnold & friends", note: "" },
@@ -279,7 +313,7 @@
 
   const state = {
     events: [],
-    ready: false, // true once the first live snapshot has arrived
+    ready: false,
     view: "calendar",
     month: new Date(),
     filters: new Set(Object.keys(CATEGORIES)),
@@ -291,20 +325,30 @@
 
   const REDUCE_MOTION = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* Haptic Safety Guard Logic */
   function buzz(ms) {
     if (navigator.vibrate) {
-      try { navigator.vibrate(ms || 8); } catch (e) { /* ignore */ }
+      try { navigator.vibrate(ms || 8); } catch (e) { /* hardware vibration context protected */ }
     }
   }
 
-  // ---------- Sound (synthesized — no audio files to fetch/cache) ----------
+  // --- Dynamic Floating Toast Notification Handler ---
+  function showToast(message = "✨ Plan saved successfully!") {
+    const toast = document.getElementById('toast-notification');
+    toast.textContent = message;
+    toast.classList.add('toast-show');
+    setTimeout(() => {
+      toast.classList.remove('toast-show');
+    }, 3000);
+  }
+
+  // ---------- Sound (Synthesized Chords) ----------
   const SOUND_KEY = "us_schedule_sound";
   let soundOn = true;
   try { soundOn = localStorage.getItem(SOUND_KEY) !== "off"; } catch (e) { /* ignore */ }
 
   let audioCtx = null;
   function primeAudio() {
-    // Must be called synchronously inside a real user gesture for iOS Safari to allow audio later.
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
@@ -339,14 +383,24 @@
   }
 
   function playUnlockChime() { playTone([523.25, 659.25, 783.99], { gap: 0.1, dur: 0.55, vol: 0.05 }); }
-  function playDateChime() { playTone([659.25, 783.99, 987.77, 1174.66], { gap: 0.075, dur: 0.35, vol: 0.035 }); }
+  
+  /* Upgraded Cinematographic Warm E-Major 7th Accordance Chime */
+  function playDateChime() {
+    if (!soundOn) return;
+    const notes = [329.63, 415.30, 493.88, 659.25]; 
+    notes.forEach((freq, index) => {
+      setTimeout(() => {
+        playTone([freq], { dur: 0.4, type: 'sine', vol: 0.04 });
+      }, index * 80);
+    });
+  }
 
   function setSoundUI() {
     document.getElementById("sound-icon-on").classList.toggle("hidden", !soundOn);
     document.getElementById("sound-icon-off").classList.toggle("hidden", soundOn);
   }
 
-  // ---------- Tap ripple (visible feedback on every interactive tap) ----------
+  // ---------- Tap ripple ----------
   function addRipple(el, x, y) {
     const rect = el.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
@@ -371,8 +425,6 @@
   // ---------- Unlock celebration ----------
   function celebrateUnlock() {
     playUnlockChime();
-
-    // Warm radial flash — brief, not continuous, so it still runs under reduced-motion
     const flash = document.createElement("div");
     flash.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:59;background:radial-gradient(circle at 50% 40%, rgba(255,111,145,0.4), rgba(124,92,252,0.15) 45%, transparent 72%);opacity:0;transition:opacity .3s ease;";
     document.body.appendChild(flash);
@@ -380,7 +432,6 @@
     setTimeout(() => { flash.style.opacity = "0"; }, 380);
     setTimeout(() => flash.remove(), 800);
 
-    // Big center heart pulse
     const big = document.createElement("div");
     big.textContent = "💜";
     big.style.cssText = "position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(0.2);font-size:60px;z-index:61;pointer-events:none;opacity:0;transition:transform .5s cubic-bezier(.34,1.56,.64,1), opacity .35s ease;";
@@ -389,7 +440,7 @@
     setTimeout(() => { big.style.opacity = "0"; }, 550);
     setTimeout(() => big.remove(), 1000);
 
-    if (REDUCE_MOTION) return; // skip the floating shower only — flash/pulse/chime above already ran
+    if (REDUCE_MOTION) return;
 
     const layer = document.createElement("div");
     layer.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;";
@@ -415,16 +466,14 @@
   }
 
   function pad2(n) { return String(n).padStart(2, "0"); }
+  
   function toDateStr(y, mIdx, d) { return `${y}-${pad2(mIdx + 1)}-${pad2(d)}`; }
 
-  function eventsForDate(dateStr) {
-    return state.events.filter((e) => e.date === dateStr);
-  }
-  function filteredEventsForDate(dateStr) {
-    return eventsForDate(dateStr).filter((e) => state.filters.has(e.category));
-  }
+  function eventsForDate(dateStr) { return state.events.filter((e) => e.date === dateStr); }
+  
+  function filteredEventsForDate(dateStr) { return eventsForDate(dateStr).filter((e) => state.filters.has(e.category)); }
 
-  // ---------- Ambient background (mirrors the day's own morning/afternoon/night rhythm) ----------
+  // ---------- Ambient background ----------
   function setupAmbientBackground() {
     const h = new Date().getHours();
     let preset;
@@ -455,14 +504,12 @@
     async function verify() {
       const code = boxes.map((b) => b.value).join("");
       let hash;
-      try {
-        hash = await sha256Hex(code);
-      } catch (err) {
-        errorEl.textContent = "Can't verify here — open the deployed https:// link, or run a local server (see README).";
+      try { hash = await sha256Hex(code); } catch (err) {
+        errorEl.textContent = "Can't verify authentication context.";
         return;
       }
       if (hash === PASSCODE_HASH) {
-        try { localStorage.setItem(AUTH_KEY, "granted"); } catch (err) { /* storage blocked; session just won't persist */ }
+        try { localStorage.setItem(AUTH_KEY, "granted"); } catch (err) {}
         errorEl.textContent = "";
         buzz(12);
         celebrateUnlock();
@@ -476,7 +523,7 @@
     boxes.forEach((box, i) => {
       box.addEventListener("touchstart", primeAudio, { passive: true, once: true });
       box.addEventListener("input", () => {
-        primeAudio();
+        primeAudio(); // This actively un-mutes iOS Safari audio context on touch
         box.value = box.value.replace(/[^0-9]/g, "").slice(0, 1);
         errorEl.textContent = "";
         if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
@@ -486,27 +533,36 @@
         if (e.key === "Backspace" && !box.value && i > 0) boxes[i - 1].focus();
       });
     });
-
     window._resetGateBoxes = () => boxes.forEach((b) => (b.value = ""));
   }
 
   function showGate() {
-    document.getElementById("gate").classList.remove("hidden");
+    const gate = document.getElementById("gate");
+    gate.style.transition = "none";
+    gate.style.opacity = "1";
+    gate.style.filter = "none";
+    gate.style.pointerEvents = "auto";
+    gate.classList.remove("hidden");
     document.getElementById("shell").classList.add("hidden");
     if (window._resetGateBoxes) window._resetGateBoxes();
-    setTimeout(() => {
-      const first = document.querySelector('[data-idx="0"]');
-      if (first) first.focus();
-    }, 50);
+    setTimeout(() => { const first = document.querySelector('[data-idx="0"]'); if (first) first.focus(); }, 50);
   }
 
   function showShell() {
-    document.getElementById("gate").classList.add("hidden");
-    document.getElementById("shell").classList.remove("hidden");
-    if (!db) initFirebase();
+    const gate = document.getElementById("gate");
+    gate.style.transition = "opacity 0.6s ease-out, filter 0.6s ease-out";
+    gate.style.opacity = "0";
+    gate.style.filter = "blur(10px)";
+    gate.style.pointerEvents = "none";
+    
+    setTimeout(() => {
+      gate.classList.add("hidden");
+      document.getElementById("shell").classList.remove("hidden");
+      if (!db) initFirebase();
+    }, 600);
   }
 
-  // ---------- Firebase (shared live data) ----------
+  // ---------- Firebase Integration ----------
   function showContentMessage(html) {
     document.getElementById("content").innerHTML = `<div class="glass rounded-2xl p-6 text-center mt-10">${html}</div>`;
   }
@@ -522,30 +578,25 @@
       showContentMessage(`
         <p class="text-2xl mb-2">🛠️</p>
         <p class="font-display text-lg mb-1">Almost there</p>
-        <p class="text-sm opacity-60">Firebase isn't configured yet — fill in <code>firebase-config.js</code> with your project's config to turn on shared, live-synced plans.</p>`);
+        <p class="text-sm opacity-60">Firebase configuration missing inside <code>firebase-config.js</code>.</p>`);
       return;
     }
     try {
       firebase.initializeApp(window.FIREBASE_CONFIG);
       db = firebase.firestore();
-      db.enablePersistence({ synchronizeTabs: true }).catch(() => { /* fine if unsupported / multiple tabs */ });
-      firebase.auth().onAuthStateChanged((user) => {
-        if (user) subscribeEvents();
-      });
+      db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+      firebase.auth().onAuthStateChanged((user) => { if (user) subscribeEvents(); });
       firebase.auth().signInAnonymously().catch((err) => {
         showContentMessage(`
           <p class="text-2xl mb-2">🔌</p>
           <p class="font-display text-lg mb-1">Couldn't connect</p>
-          <p class="text-sm opacity-60 mb-3">Check that Anonymous sign-in is enabled in Firebase Authentication.</p>
           <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>
           ${errText(err)}`);
         const retry = document.getElementById("retry-load");
         if (retry) retry.addEventListener("click", () => { db = null; initFirebase(); });
       });
     } catch (e) {
-      showContentMessage(`
-        <p class="text-sm opacity-70">Couldn't set up the connection. Double-check your Firebase config values.</p>
-        ${errText(e)}`);
+      showContentMessage(`<p class="text-sm opacity-70">Firestore initialization error.</p> ${errText(e)}`);
     }
   }
 
@@ -557,9 +608,7 @@
         snapshot.forEach((doc) => events.push(Object.assign({ id: doc.id }, doc.data())));
         state.events = events;
 
-        if (events.length === 0 && !state.ready) {
-          seedInitialEvents();
-        }
+        if (events.length === 0 && !state.ready) { seedInitialEvents(); }
 
         if (!state.ready) {
           state.ready = true;
@@ -573,11 +622,8 @@
         }
       },
       (err) => {
-        const isPermission = err && err.code === "permission-denied";
         showContentMessage(`
           <p class="text-2xl mb-2">🔌</p>
-          <p class="font-display text-lg mb-1">${isPermission ? "Almost — check Firestore rules" : "Lost connection"}</p>
-          <p class="text-sm opacity-60 mb-3">${isPermission ? "Firestore is reachable, but the security rules are blocking access. Double-check the rules from the README are published, and that Anonymous sign-in is enabled." : "Check your internet and try again."}</p>
           <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>
           ${errText(err)}`);
         const retry = document.getElementById("retry-load");
@@ -592,51 +638,56 @@
       const ref = db.collection("events").doc();
       batch.set(ref, ev);
     });
-    batch.commit().catch(() => { /* another device may have seeded first — fine either way */ });
+    batch.commit().catch(() => {});
   }
 
   function determineInitialMonth() {
-    const dates = state.events.map((e) => e.date).sort();
-    if (dates.length === 0) { state.month = new Date(); return; }
-    const now = new Date();
-    const todayYM = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
-    const monthsSet = new Set(dates.map((d) => d.slice(0, 7)));
-    if (monthsSet.has(todayYM)) { state.month = new Date(`${todayYM}-01T00:00:00`); return; }
-    const sortedMonths = Array.from(monthsSet).sort();
-    const upcoming = sortedMonths.find((m) => m >= todayYM);
-    state.month = new Date(`${upcoming || sortedMonths[0]}-01T00:00:00`);
-  }
-
-  // ---------- Header ----------
-  function renderHeader() {
-    document.getElementById("month-label").textContent = state.month.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-  }
-
-  // ---------- Filter chips ----------
-  function renderChips() {
-    const wrap = document.getElementById("chips");
-    const total = Object.keys(CATEGORIES).length;
-    const allActive = state.filters.size === total;
-
-    let html = `<button data-chip="__all" class="chip glass px-3.5 py-1.5 rounded-full text-xs font-semibold" style="${allActive ? "background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.28);" : ""}">All</button>`;
-    for (const [key, cat] of Object.entries(CATEGORIES)) {
-      const active = state.filters.has(key);
-      html += `<button data-chip="${key}" class="chip px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5" style="background:${active ? cat.color + "26" : "rgba(255,255,255,0.05)"}; border:1px solid ${active ? cat.color + "80" : "rgba(255,255,255,0.08)"}; color:${active ? cat.color : "rgba(231,228,244,0.55)"}">
-        <span>${cat.emoji}</span><span>${cat.label}</span>
-      </button>`;
+    if (state.events.length > 0) {
+      const sorted = [...state.events].sort((a,b) => a.date.localeCompare(b.date));
+      const firstEv = sorted[0].date;
+      const parts = firstEv.split("-");
+      state.month = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+    } else {
+      state.month = new Date();
     }
-    wrap.innerHTML = html;
+  }
 
-    wrap.querySelectorAll("[data-chip]").forEach((btn) => {
+  // ---------- UI Presentation Engine ----------
+  function renderHeader() {
+    const lbl = state.month.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    document.getElementById("month-label").textContent = lbl;
+  }
+
+  function renderChips() {
+    const container = document.getElementById("chips");
+    if (!container) return;
+    let html = "";
+    Object.keys(CATEGORIES).forEach((catKey) => {
+      const active = state.filters.has(catKey);
+      const cat = CATEGORIES[catKey];
+      const count = state.events.filter((e) => e.category === catKey).length;
+      if (count === 0) return;
+
+      html += `
+        <button data-cat="${catKey}" class="chip px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
+          active ? "bg-white/15 text-white shadow-sm" : "bg-white/5 text-white/40"
+        }" style="${active ? `border: 1px solid ${cat.color}40;` : "border: 1px solid transparent;"}">
+          <span>${cat.emoji}</span>
+          <span>${cat.label}</span>
+          <span class="opacity-50 text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full">${count}</span>
+        </button>
+      `;
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll(".chip").forEach((btn) => {
       btn.addEventListener("click", () => {
+        const catKey = btn.getAttribute("data-cat");
         buzz(6);
-        const key = btn.dataset.chip;
-        if (key === "__all") {
-          state.filters = new Set(Object.keys(CATEGORIES));
-        } else if (state.filters.has(key)) {
-          state.filters.delete(key);
+        if (state.filters.has(catKey)) {
+          if (state.filters.size > 1) state.filters.delete(catKey);
         } else {
-          state.filters.add(key);
+          state.filters.add(catKey);
         }
         renderChips();
         renderView();
@@ -644,20 +695,17 @@
     });
   }
 
-  // ---------- View switching ----------
-  function setActiveTab(view) {
-    state.view = view;
-    document.getElementById("tab-indicator").style.transform = view === "calendar" ? "translateX(0%)" : "translateX(100%)";
-    document.querySelectorAll(".tab-btn").forEach((b) => { b.style.opacity = b.dataset.view === view ? "1" : "0.5"; });
-    document.getElementById("view-calendar").classList.toggle("hidden", view !== "calendar");
-    document.getElementById("view-timeline").classList.toggle("hidden", view !== "timeline");
-    renderView();
-  }
-
   function renderView() {
     renderTodayBanner();
-    renderCalendar();
-    renderTimeline();
+    if (state.view === "calendar") {
+      document.getElementById("view-calendar").classList.remove("hidden");
+      document.getElementById("view-timeline").classList.add("hidden");
+      renderCalendar();
+    } else {
+      document.getElementById("view-calendar").classList.add("hidden");
+      document.getElementById("view-timeline").classList.remove("hidden");
+      renderTimeline();
+    }
   }
 
   function renderTodayBanner() {
@@ -676,7 +724,7 @@
     if (todayEvents.length > 0) {
       const order = { morning: 0, afternoon: 1, night: 2, anytime: 3 };
       const sorted = [...todayEvents].sort((a, b) => order[a.block[0]] - order[b.block[0]]);
-      const names = sorted.slice(0, 3).map((e) => `${CATEGORIES[e.category].emoji} ${escapeHtml(e.title)}`).join(", ");
+      const names = sorted.slice(0, 3).map((e) => `${(CATEGORIES[e.category] || CATEGORIES.other).emoji} ${escapeHtml(e.title)}`).join(", ");
       const extra = sorted.length > 3 ? ` +${sorted.length - 3} more` : "";
       rows += `<button data-goto-today="1" class="tap-fx w-full text-left flex items-start gap-2"><span class="text-base leading-none mt-0.5">🌤️</span><p class="text-[13px] leading-snug"><span class="font-semibold">Today —</span> ${names}${extra}</p></button>`;
     }
@@ -695,434 +743,442 @@
     banner.classList.remove("hidden");
 
     const gotoToday = banner.querySelector("[data-goto-today]");
-    if (gotoToday) gotoToday.addEventListener("click", () => { buzz(6); openSheet(todayStr); });
+    if (gotoToday) gotoToday.addEventListener("click", () => { buzz(6); state.selectedDate = todayStr; openSheet(); });
     const gotoDate = banner.querySelector("[data-goto-date]");
-    if (gotoDate) gotoDate.addEventListener("click", () => { buzz(6); openSheet(gotoDate.dataset.gotoDate); });
-  }
-
-  function goToMonth(delta) {
-    const content = document.getElementById("content");
-    if (REDUCE_MOTION) {
-      state.month = new Date(state.month.getFullYear(), state.month.getMonth() + delta, 1);
-      renderHeader();
-      renderView();
-      return;
-    }
-    content.style.transition = "opacity .15s ease, transform .18s ease";
-    content.style.opacity = "0";
-    content.style.transform = delta < 0 ? "translateX(14px)" : "translateX(-14px)";
-    setTimeout(() => {
-      state.month = new Date(state.month.getFullYear(), state.month.getMonth() + delta, 1);
-      renderHeader();
-      renderView();
-      content.style.transition = "none";
-      content.style.transform = delta < 0 ? "translateX(-14px)" : "translateX(14px)";
-      requestAnimationFrame(() => {
-        content.style.transition = "opacity .18s ease, transform .22s cubic-bezier(.32,.72,0,1)";
-        content.style.opacity = "1";
-        content.style.transform = "translateX(0)";
-      });
-    }, 150);
-  }
-
-  // ---------- Calendar grid ----------
-  function buildMonthMatrix(year, monthIdx) {
-    const first = new Date(year, monthIdx, 1);
-    const startDow = first.getDay();
-    const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
-    const cells = [];
-    for (let i = 0; i < startDow; i++) cells.push({ inMonth: false });
-    for (let d = 1; d <= daysInMonth; d++) cells.push({ inMonth: true, day: d, dateStr: toDateStr(year, monthIdx, d) });
-    while (cells.length % 7 !== 0) cells.push({ inMonth: false });
-    return cells;
+    if (gotoDate) gotoDate.addEventListener("click", () => { buzz(6); state.selectedDate = gotoDate.dataset.gotoDate; openSheet(); });
   }
 
   function renderCalendar() {
     const container = document.getElementById("view-calendar");
     const year = state.month.getFullYear();
     const monthIdx = state.month.getMonth();
-    const cells = buildMonthMatrix(year, monthIdx);
-    const now = new Date();
-    const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
 
-    let cellsHtml = "";
-    cells.forEach((cell) => {
-      if (!cell.inMonth) { cellsHtml += `<div class="aspect-square"></div>`; return; }
-      const filtered = filteredEventsForDate(cell.dateStr);
-      const cats = [...new Set(filtered.map((e) => e.category))];
-      const isToday = cell.dateStr === todayStr;
-      const hasFiltered = filtered.length > 0;
+    const firstDay = new Date(year, monthIdx, 1).getDay();
+    const totalDays = new Date(year, monthIdx + 1, 0).getDate();
+    const startOffset = firstDay === 0 ? 6 : firstDay - 1; 
 
-      let segments = "";
-      cats.slice(0, 4).forEach((catKey) => {
-        segments += `<span class="flex-1 h-[3px] rounded-full" style="background:${CATEGORIES[catKey].color}"></span>`;
-      });
-
-      cellsHtml += `
-        <button data-date="${cell.dateStr}" class="day-cell aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 ${hasFiltered ? "glass" : ""} ${isToday ? "ring-1 ring-white/30" : ""}" style="${hasFiltered ? "" : "opacity:0.5;"}">
-          <span class="text-[15px] font-semibold tabular-nums">${cell.day}</span>
-          ${hasFiltered ? `<span class="flex w-7 gap-[3px]">${segments}</span>` : ""}
-        </button>`;
+    let html = `<div class="grid grid-cols-7 gap-x-2 gap-y-3 text-center mb-2">`;
+    ["M", "T", "W", "T", "F", "S", "S"].forEach((d) => {
+      html += `<span class="text-[10px] font-bold tracking-widest opacity-30 uppercase">${d}</span>`;
     });
+    html += `</div><div class="grid grid-cols-7 gap-2">`;
 
-    container.innerHTML = `
-      <div class="grid grid-cols-7 gap-y-1 mb-2">
-        ${["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => `<div class="text-center text-[11px] font-medium tracking-wide opacity-45 pb-1">${d}</div>`).join("")}
-      </div>
-      <div class="grid grid-cols-7 gap-1.5">${cellsHtml}</div>
-    `;
+    for (let i = 0; i < startOffset; i++) {
+      html += `<div class="aspect-square opacity-0 pointer-events-none"></div>`;
+    }
 
-    container.querySelectorAll("[data-date]").forEach((btn) => {
-      btn.addEventListener("click", () => openSheet(btn.dataset.date));
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    for (let d = 1; d <= totalDays; d++) {
+      const dateStr = toDateStr(year, monthIdx, d);
+      const allEvs = eventsForDate(dateStr);
+      const visibleEvs = filteredEventsForDate(dateStr);
+      const isToday = dateStr === todayStr;
+
+      let dotsHtml = "";
+      if (allEvs.length > 0) {
+        const isFilteredOut = visibleEvs.length === 0;
+        dotsHtml += `<div class="flex justify-center gap-1 mt-1.5 min-h-[5px] ${isFilteredOut ? "opacity-25" : ""}">`;
+        
+        // Custom color-matching dots system
+        const displayed = visibleEvs.length > 0 ? visibleEvs : allEvs;
+        displayed.slice(0, 3).forEach((ev) => {
+          const cat = CATEGORIES[ev.category] || CATEGORIES.other;
+          dotsHtml += `<span class="w-1.5 h-1.5 rounded-full shadow-sm" style="background:${cat.color}"></span>`;
+        });
+        dotsHtml += `</div>`;
+      } else {
+        dotsHtml += `<div class="mt-1.5 min-h-[5px]"></div>`;
+      }
+
+      html += `
+        <button data-date="${dateStr}" class="day-cell aspect-square rounded-2xl glass flex flex-col justify-between p-2 relative ${
+          isToday ? "bg-white/10" : ""
+        }" style="${isToday ? "border: 1.5px solid #7C5CFC;" : ""}">
+          <span class="text-sm font-semibold tracking-tight ${isToday ? "text-[#7C5CFC]" : "opacity-90"}">${d}</span>
+          ${dotsHtml}
+        </button>
+      `;
+    }
+    html += `</div>`;
+    container.innerHTML = html;
+
+    container.querySelectorAll(".day-cell").forEach((cell) => {
+      cell.addEventListener("click", () => {
+        state.selectedDate = cell.getAttribute("data-date");
+        buzz(7);
+        openSheet();
+      });
     });
   }
 
-  // ---------- Timeline / list ----------
   function renderTimeline() {
     const container = document.getElementById("view-timeline");
     const year = state.month.getFullYear();
     const monthIdx = state.month.getMonth();
-    const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
-    const order = { morning: 0, afternoon: 1, night: 2, anytime: 3 };
 
-    let rows = "";
-    let anyRaw = false;
+    const monthEvents = state.events.filter((e) => {
+      const p = e.date.split("-");
+      return parseInt(p[0], 10) === year && parseInt(p[1], 10) === (monthIdx + 1);
+    });
 
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = toDateStr(year, monthIdx, d);
-      const raw = eventsForDate(dateStr);
-      if (raw.length === 0) continue;
-      anyRaw = true;
-      const filtered = raw.filter((e) => state.filters.has(e.category));
-      if (filtered.length === 0) continue;
+    const filtered = monthEvents.filter((e) => state.filters.has(e.category));
+    filtered.sort((a,b) => a.date.localeCompare(b.date) || (a.block[0]||"").localeCompare(b.block[0]||""));
 
-      const dateObj = new Date(`${dateStr}T00:00:00`);
-      const wd = dateObj.toLocaleDateString("en-US", { weekday: "short" });
-      const sorted = [...filtered].sort((a, b) => order[a.block[0]] - order[b.block[0]]);
-      const dotsHtml = sorted.map((e) => {
-        const c = CATEGORIES[e.category];
-        return `<span class="inline-flex items-center gap-1 text-[12px] rounded-full px-2 py-0.5" style="background:${c.color}1f;color:${c.color}">${c.emoji} ${escapeHtml(e.title)}</span>`;
-      }).join("");
-
-      rows += `
-        <button data-date="${dateStr}" class="day-cell w-full flex items-start gap-3 glass rounded-2xl p-3.5 text-left">
-          <div class="flex flex-col items-center justify-center rounded-xl px-2.5 py-1.5" style="background:rgba(255,255,255,0.06);">
-            <span class="text-[10px] font-semibold uppercase tracking-wide opacity-60">${wd}</span>
-            <span class="text-lg font-bold tabular-nums leading-none mt-0.5">${d}</span>
-          </div>
-          <div class="flex-1 flex flex-wrap gap-1.5 pt-0.5">${dotsHtml}</div>
-        </button>`;
-    }
-
-    if (!rows) {
-      container.innerHTML = `
-        <div class="glass rounded-2xl p-8 text-center mt-6">
-          <div class="text-3xl mb-2">🗓️</div>
-          <p class="font-display text-lg mb-1">Nothing here yet</p>
-          <p class="text-sm opacity-60">${anyRaw ? "No plans match your filters this month." : "Tap the + button to add your first plan."}</p>
-        </div>`;
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="text-center py-12 opacity-40 text-xs tracking-wide">No plans matching filters this month</div>`;
       return;
     }
 
-    container.innerHTML = `<div class="flex flex-col gap-2.5">${rows}</div>`;
-    container.querySelectorAll("[data-date]").forEach((btn) => {
-      btn.addEventListener("click", () => openSheet(btn.dataset.date));
+    let html = `<div class="space-y-3.5">`;
+    filtered.forEach((ev) => {
+      const cat = CATEGORIES[ev.category] || CATEGORIES.other;
+      const dObj = new Date(ev.date);
+      const dayLabel = dObj.toLocaleDateString("en-US", { weekday: "short", day: "numeric" });
+      const blockLabel = ev.block.map((b) => b.charAt(0).toUpperCase() + b.slice(1)).join(" & ");
+
+      html += `
+        <div data-id="${ev.id}" class="tap-fx glass rounded-2xl p-4 flex items-center justify-between gap-4 border-l-4" style="border-left-color:${cat.color}">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[11px] font-bold tracking-wider text-white/50 uppercase">${dayLabel}</span>
+              <span class="w-1 h-1 rounded-full bg-white/20"></span>
+              <span class="text-[11px] font-medium opacity-40">${blockLabel}</span>
+            </div>
+            <p class="text-[15px] font-semibold tracking-tight text-white/95 truncate">${escapeHtml(ev.title)}</p>
+            ${ev.note ? `<p class="text-xs opacity-45 mt-0.5 truncate">${escapeHtml(ev.note)}</p>` : ""}
+          </div>
+          <div class="text-xl opacity-85 shrink-0 bg-white/5 w-9 h-9 rounded-xl flex items-center justify-center">${cat.emoji}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+
+    container.querySelectorAll("[data-id]").forEach((card) => {
+      card.addEventListener("click", () => {
+        const id = card.getAttribute("data-id");
+        const ev = state.events.find((e) => e.id === id);
+        if (ev) {
+          buzz(7);
+          openFormSheet(ev);
+        }
+      });
     });
   }
 
-  // ---------- Day detail sheet ----------
-  function openSheet(dateStr) {
-    buzz(8);
-    state.selectedDate = dateStr;
-    const evts = eventsForDate(dateStr);
-    const dateObj = new Date(`${dateStr}T00:00:00`);
-    document.getElementById("sheet-date").textContent = dateObj.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  // ---------- Bottom Sheet Interaction ----------
+  function openSheet() {
+    const backdrop = document.getElementById("sheet-backdrop");
+    const container = document.getElementById("sheet");
+    const label = document.getElementById("sheet-date");
+    const body = document.getElementById("sheet-body");
 
-    const sectionsOrder = [
-      { key: "morning", label: "Morning", emoji: "🌅" },
-      { key: "afternoon", label: "Afternoon", emoji: "☀️" },
-      { key: "night", label: "Night", emoji: "🌙" },
-      { key: "anytime", label: "Anytime", emoji: "🕒" },
-    ];
-    const blockLabel = { morning: "Morning", afternoon: "Afternoon", night: "Night", anytime: "Anytime" };
+    const dObj = new Date(state.selectedDate);
+    label.textContent = dObj.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' });
+
+    const evs = filteredEventsForDate(state.selectedDate);
+    evs.sort((a,b) => (a.block[0]||"").localeCompare(b.block[0]||""));
 
     let html = "";
-    sectionsOrder.forEach((sec) => {
-      const items = evts.filter((e) => e.block[0] === sec.key);
-      if (items.length === 0) return;
-      html += `<div class="mb-4 last:mb-0">
-        <p class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">${sec.emoji} ${sec.label}</p>
-        <div class="flex flex-col gap-2">
-          ${items.map((e) => {
-            const cat = CATEGORIES[e.category];
-            const span = e.block.length > 1 ? `<span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full opacity-60" style="background:rgba(255,255,255,0.08);">${blockLabel[e.block[0]]}–${blockLabel[e.block[e.block.length - 1]]}</span>` : "";
-            return `<div class="glass rounded-2xl p-3.5 flex items-start gap-3" style="border-left:3px solid ${cat.color};">
-              <span class="text-xl leading-none mt-0.5">${cat.emoji}</span>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-semibold text-[15px]">${escapeHtml(e.title)}</span>
-                  ${span}
-                </div>
-                ${e.note ? `<p class="text-[13px] opacity-60 mt-1 leading-snug">${escapeHtml(e.note)}</p>` : ""}
-              </div>
-              <button data-edit-id="${e.id}" class="tap-fx w-7 h-7 rounded-full flex items-center justify-center opacity-60 flex-shrink-0" style="background:rgba(255,255,255,0.06);" aria-label="Edit">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-              </button>
-            </div>`;
-          }).join("")}
+    if (evs.length === 0) {
+      html = `
+        <div class="text-center py-8">
+          <p class="text-sm opacity-35 tracking-wide mb-4">Clear day — nothing planned</p>
+          <button id="sheet-add-btn" class="tap-fx px-4 py-2.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5" style="background:linear-gradient(135deg, #7C5CFC, #FF6F91); color:white;">
+            ✨ Add a plan
+          </button>
         </div>
-      </div>`;
+      `;
+    } else {
+      html += `<div class="space-y-3 mb-5">`;
+      evs.forEach((ev) => {
+        const cat = CATEGORIES[ev.category] || CATEGORIES.other;
+        const blockLabel = ev.block.map((b) => b.charAt(0).toUpperCase() + b.slice(1)).join(" & ");
+        html += `
+          <div data-id="${ev.id}" class="tap-fx glass rounded-2xl p-4 flex items-center justify-between gap-4 border-l-4" style="border-left-color:${cat.color}">
+            <div class="flex-1 min-w-0">
+              <span class="text-[10px] font-bold uppercase tracking-wider opacity-40 block mb-0.5">${blockLabel}</span>
+              <p class="text-[15px] font-semibold text-white/95 tracking-tight truncate">${escapeHtml(ev.title)}</p>
+              ${ev.note ? `<p class="text-xs opacity-45 mt-0.5 truncate">${escapeHtml(ev.note)}</p>` : ""}
+            </div>
+            <div class="text-xl shrink-0 bg-white/5 w-9 h-9 rounded-xl flex items-center justify-center">${cat.emoji}</div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+    body.innerHTML = html;
+
+    backdrop.classList.remove("hidden");
+    container.classList.remove("hidden");
+    requestAnimationFrame(() => {
+      backdrop.style.opacity = "1";
+      container.classList.remove("sheet-hidden");
     });
 
-    html += `<button id="sheet-add-btn" class="tap-fx w-full mt-1 py-3 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold opacity-80" style="background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.18);">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      Add to this day
-    </button>`;
+    const addBtn = document.getElementById("sheet-add-btn");
+    if (addBtn) addBtn.addEventListener("click", () => { closeSheet(); openFormSheet(null, state.selectedDate); });
 
-    document.getElementById("sheet-body").innerHTML = html;
-
-    document.getElementById("sheet-add-btn").addEventListener("click", () => {
-      openForm(null, dateStr);
-    });
-    document.querySelectorAll("[data-edit-id]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const ev = state.events.find((e) => e.id === btn.dataset.editId);
-        if (ev) openForm(ev);
+    body.querySelectorAll("[data-id]").forEach((card) => {
+      card.addEventListener("click", () => {
+        const ev = state.events.find((e) => e.id === card.getAttribute("data-id"));
+        if (ev) { closeSheet(); openFormSheet(ev); }
       });
     });
-
-    const panel = document.getElementById("sheet-panel");
-    panel.style.transition = "";
-    panel.style.transform = "";
-
-    const isDateDay = evts.some((e) => e.category === "date");
-    if (isDateDay) {
-      panel.style.boxShadow = "0 -14px 46px rgba(255,111,145,0.28)";
-      playDateChime();
-    } else {
-      panel.style.boxShadow = "";
-    }
-
-    const backdrop = document.getElementById("sheet-backdrop");
-    const sheetEl = document.getElementById("sheet");
-    backdrop.classList.remove("hidden");
-    sheetEl.classList.remove("hidden");
-    requestAnimationFrame(() => {
-      backdrop.classList.remove("opacity-0");
-      backdrop.classList.add("opacity-100");
-      sheetEl.classList.remove("sheet-hidden");
-    });
-    document.body.style.overflow = "hidden";
   }
 
   function closeSheet() {
-    const panel = document.getElementById("sheet-panel");
-    panel.style.transition = "";
-    panel.style.transform = "";
     const backdrop = document.getElementById("sheet-backdrop");
-    const sheetEl = document.getElementById("sheet");
-    sheetEl.classList.add("sheet-hidden");
-    backdrop.classList.remove("opacity-100");
-    backdrop.classList.add("opacity-0");
-    document.body.style.overflow = "";
+    const container = document.getElementById("sheet");
+    backdrop.style.opacity = "0";
+    container.classList.add("sheet-hidden");
     setTimeout(() => {
-      sheetEl.classList.add("hidden");
       backdrop.classList.add("hidden");
-    }, 380);
+      container.classList.add("hidden");
+    }, 400);
   }
 
-  // ---------- Add / Edit form ----------
-  const BLOCK_OPTIONS = [
-    { key: "morning", label: "🌅 Morning" },
-    { key: "afternoon", label: "☀️ Afternoon" },
-    { key: "night", label: "🌙 Night" },
-    { key: "anytime", label: "🕒 Anytime" },
-  ];
-  let formBlocks = new Set();
-  let formCategory = null;
-  let editingId = null;
+  // ---------- Interactive Event Sheet Form Planner ----------
+  let currentFormEvent = null;
+  const FORM_BLOCKS = ["morning", "afternoon", "night", "anytime"];
+  const formState = { blocks: new Set(), category: "date" };
 
-  function renderFormBlockChips() {
-    const wrap = document.getElementById("form-block-chips");
-    wrap.innerHTML = BLOCK_OPTIONS.map((b) => {
-      const active = formBlocks.has(b.key);
-      return `<button type="button" data-block="${b.key}" class="chip px-3.5 py-1.5 rounded-full text-xs font-semibold" style="background:${active ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.05)"};border:1px solid ${active ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.08)"};">${b.label}</button>`;
-    }).join("");
-    wrap.querySelectorAll("[data-block]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        buzz(6);
-        const key = btn.dataset.block;
-        if (key === "anytime") {
-          formBlocks = new Set(["anytime"]);
-        } else {
-          formBlocks.delete("anytime");
-          if (formBlocks.has(key)) formBlocks.delete(key); else formBlocks.add(key);
-        }
-        renderFormBlockChips();
-      });
-    });
-  }
+  function openFormSheet(ev, fallbackDate) {
+    currentFormEvent = ev;
+    const backdrop = document.getElementById("form-backdrop");
+    const container = document.getElementById("form-sheet");
+    const label = document.getElementById("form-title-label");
+    const delBtn = document.getElementById("form-delete");
+    const errEl = document.getElementById("form-error");
 
-  function renderFormCategoryChips() {
-    const wrap = document.getElementById("form-category-chips");
-    wrap.innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => {
-      const active = formCategory === key;
-      return `<button type="button" data-cat="${key}" class="chip px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5" style="background:${active ? cat.color + "26" : "rgba(255,255,255,0.05)"};border:1px solid ${active ? cat.color + "80" : "rgba(255,255,255,0.08)"};color:${active ? cat.color : "rgba(231,228,244,0.55)"};"><span>${cat.emoji}</span><span>${cat.label}</span></button>`;
-    }).join("");
-    wrap.querySelectorAll("[data-cat]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        buzz(6);
-        formCategory = btn.dataset.cat;
-        renderFormCategoryChips();
-      });
-    });
-  }
+    errEl.textContent = "";
+    formState.blocks.clear();
 
-  function openForm(existing, prefillDate) {
-    editingId = existing ? existing.id : null;
-    document.getElementById("form-title-label").textContent = existing ? "Edit plan" : "New plan";
-    document.getElementById("form-error").textContent = "";
-    document.getElementById("form-delete").classList.toggle("hidden", !existing);
-
-    let dateVal = prefillDate;
-    if (existing) dateVal = existing.date;
-    if (!dateVal) {
-      const now = new Date();
-      const inViewedMonth = now.getFullYear() === state.month.getFullYear() && now.getMonth() === state.month.getMonth();
-      dateVal = inViewedMonth ? toDateStr(now.getFullYear(), now.getMonth(), now.getDate()) : toDateStr(state.month.getFullYear(), state.month.getMonth(), 1);
+    if (ev) {
+      label.textContent = "Edit plan";
+      document.getElementById("form-date").value = ev.date;
+      document.getElementById("form-title-input").value = ev.title;
+      document.getElementById("form-note-input").value = ev.note || "";
+      ev.block.forEach((b) => formState.blocks.add(b));
+      formState.category = ev.category;
+      delBtn.classList.remove("hidden");
+    } else {
+      label.textContent = "New plan";
+      document.getElementById("form-date").value = fallbackDate || new Date().toISOString().split("T")[0];
+      document.getElementById("form-title-input").value = "";
+      document.getElementById("form-note-input").value = "";
+      formState.blocks.add("anytime");
+      formState.category = "date";
+      delBtn.classList.add("hidden");
     }
-    document.getElementById("form-date").value = dateVal;
-    document.getElementById("form-title-input").value = existing ? existing.title : "";
-    document.getElementById("form-note-input").value = existing ? (existing.note || "") : "";
 
-    formBlocks = new Set(existing ? existing.block : []);
-    formCategory = existing ? existing.category : null;
-    renderFormBlockChips();
-    renderFormCategoryChips();
+    renderFormBlocks();
+    renderFormCategories();
 
-    const backdrop = document.getElementById("form-backdrop");
-    const sheetEl = document.getElementById("form-sheet");
     backdrop.classList.remove("hidden");
-    sheetEl.classList.remove("hidden");
+    container.classList.remove("hidden");
     requestAnimationFrame(() => {
-      backdrop.classList.remove("opacity-0");
-      backdrop.classList.add("opacity-100");
-      sheetEl.classList.remove("sheet-hidden");
+      backdrop.style.opacity = "1";
+      container.classList.remove("sheet-hidden");
     });
-    document.body.style.overflow = "hidden";
-    setTimeout(() => document.getElementById("form-title-input").focus(), 350);
   }
 
-  function closeForm() {
-    const panel = document.getElementById("form-panel");
-    panel.style.transition = "";
-    panel.style.transform = "";
+  function closeFormSheet() {
     const backdrop = document.getElementById("form-backdrop");
-    const sheetEl = document.getElementById("form-sheet");
-    sheetEl.classList.add("sheet-hidden");
-    backdrop.classList.remove("opacity-100");
-    backdrop.classList.add("opacity-0");
-    document.body.style.overflow = "";
+    const container = document.getElementById("form-sheet");
+    backdrop.style.opacity = "0";
+    container.classList.add("sheet-hidden");
     setTimeout(() => {
-      sheetEl.classList.add("hidden");
       backdrop.classList.add("hidden");
-    }, 380);
+      container.classList.add("hidden");
+    }, 400);
+  }
+
+  function renderFormBlocks() {
+    const container = document.getElementById("form-block-chips");
+    let html = "";
+    FORM_BLOCKS.forEach((b) => {
+      const active = formState.blocks.has(b);
+      html += `
+        <button data-block="${b}" class="chip px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+          active ? "bg-[#7C5CFC] text-white font-semibold" : "bg-white/5 text-white/50"
+        }">${b.charAt(0).toUpperCase() + b.slice(1)}</button>
+      `;
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll("[data-block]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const b = btn.getAttribute("data-block");
+        buzz(5);
+        if (b === "anytime") {
+          formState.blocks.clear();
+          formState.blocks.add("anytime");
+        } else {
+          formState.blocks.delete("anytime");
+          if (formState.blocks.has(b)) {
+            if (formState.blocks.size > 1) formState.blocks.delete(b);
+          } else {
+            formState.blocks.add(b);
+          }
+        }
+        renderFormBlocks();
+      });
+    });
+  }
+
+  /* Upgraded High-Aesthetic Mobile Active Glow for Form Categories */
+  function renderFormCategories() {
+    const container = document.getElementById("form-category-chips");
+    let html = "";
+    Object.keys(CATEGORIES).forEach((catKey) => {
+      const cat = CATEGORIES[catKey];
+      const active = formState.category === catKey;
+      
+      html += `
+        <button data-cat="${catKey}" class="chip px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
+          active ? "bg-white/15 text-white" : "bg-white/5 text-white/40"
+        }" style="${active ? `border: 2px solid ${cat.color}; box-shadow: 0 0 15px ${cat.color}60, 0 0 30px ${cat.color}40; transform: scale(1.05);` : `border: 1px solid transparent;`}">
+          <span>${cat.emoji}</span> <span>${cat.label}</span>
+        </button>
+      `;
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll("[data-cat]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        buzz(5);
+        formState.category = btn.getAttribute("data-cat");
+        renderFormCategories();
+      });
+    });
   }
 
   function saveForm() {
-    const errorEl = document.getElementById("form-error");
-    if (!db) { errorEl.textContent = "Not connected yet — try again in a moment."; return; }
     const date = document.getElementById("form-date").value;
     const title = document.getElementById("form-title-input").value.trim();
     const note = document.getElementById("form-note-input").value.trim();
-    if (!date) { errorEl.textContent = "Pick a date."; return; }
-    if (formBlocks.size === 0) { errorEl.textContent = "Pick when it's happening."; return; }
-    if (!formCategory) { errorEl.textContent = "Pick a category."; return; }
-    if (!title) { errorEl.textContent = "Give it a title."; return; }
+    const errEl = document.getElementById("form-error");
 
-    const order = { morning: 0, afternoon: 1, night: 2, anytime: 3 };
-    const block = Array.from(formBlocks).sort((a, b) => order[a] - order[b]);
-    const payload = { date, block, category: formCategory, title, note };
+    if (!date) { errEl.textContent = "Please pick a date"; return; }
+    if (!title) { errEl.textContent = "What's happening needs a name"; return; }
 
-    const saveBtn = document.getElementById("form-save");
-    saveBtn.textContent = "Saving…";
-    const ref = editingId ? db.collection("events").doc(editingId) : db.collection("events").doc();
-    ref.set(payload)
-      .then(() => {
-        buzz(10);
-        saveBtn.textContent = "Save";
-        closeForm();
-        if (state.selectedDate) openSheet(state.selectedDate);
-      })
-      .catch(() => {
-        saveBtn.textContent = "Save";
-        errorEl.textContent = "Couldn't save — check your connection.";
-      });
+    const payload = {
+      date: date,
+      title: title,
+      note: note,
+      category: formState.category,
+      block: Array.from(formState.blocks),
+    };
+
+    if (formState.category === "date") {
+      playDateChime(); 
+    } else {
+      playTone([783.99, 987.77], { gap: 0.06, dur: 0.18, vol: 0.04 });
+    }
+    buzz(15);
+
+    if (currentFormEvent) {
+      db.collection("events").doc(currentFormEvent.id).update(payload)
+        .then(() => { closeFormSheet(); showToast("✨ Plan updated successfully!"); })
+        .catch((err) => { errEl.textContent = "Could not save updates."; });
+    } else {
+      db.collection("events").add(payload)
+        .then(() => { closeFormSheet(); showToast(); })
+        .catch((err) => { errEl.textContent = "Could not create event."; });
+    }
   }
 
-  function deleteForm() {
-    if (!editingId || !db) return;
-    db.collection("events").doc(editingId).delete().then(() => {
-      buzz([8, 30, 8]);
-      closeForm();
-      closeSheet();
-    }).catch(() => {
-      document.getElementById("form-error").textContent = "Couldn't delete — check your connection.";
-    });
+  function deleteEvent() {
+    if (!currentFormEvent) return;
+    if (confirm("Delete this plan?")) {
+      buzz([12, 50, 6]);
+      playTone([493.88, 392.00], { gap: 0.06, dur: 0.2, vol: 0.04 });
+      db.collection("events").doc(currentFormEvent.id).delete()
+        .then(() => { closeFormSheet(); })
+        .catch(() => { document.getElementById("form-error").textContent = "Could not remove plan."; });
+    }
   }
 
-  // ---------- Wire up static controls ----------
+  function setActiveTab(viewKey) {
+    state.view = viewKey;
+    const ind = document.getElementById("tab-indicator");
+    const btns = document.querySelectorAll(".tab-btn");
+    
+    if (viewKey === "calendar") {
+      ind.style.transform = "translateX(0)";
+      btns[0].classList.add("text-white"); btns[0].classList.remove("text-white/40");
+      btns[1].classList.remove("text-white"); btns[1].classList.add("text-white/40");
+    } else {
+      ind.style.transform = "translateX(100%)";
+      btns[0].classList.remove("text-white"); btns[0].classList.add("text-white/40");
+      btns[1].classList.add("text-white"); btns[1].classList.remove("text-white/40");
+    }
+    renderView();
+  }
+
+  // ---------- Control & Drag Gesture Management ----------
   function setupShellControls() {
-    setSoundUI();
-    document.getElementById("fab-add").addEventListener("click", () => {
-      primeAudio();
-      buzz(8);
-      openForm(null, null);
+    document.getElementById("prev-month").addEventListener("click", () => {
+      buzz(5); state.month.setMonth(state.month.getMonth() - 1); renderHeader(); renderChips(); renderView();
     });
-    document.getElementById("form-close").addEventListener("click", closeForm);
-    document.getElementById("form-backdrop").addEventListener("click", closeForm);
-    document.getElementById("form-save").addEventListener("click", saveForm);
-    document.getElementById("form-delete").addEventListener("click", deleteForm);
-    document.getElementById("sound-toggle").addEventListener("click", () => {
-      primeAudio();
-      soundOn = !soundOn;
-      try { localStorage.setItem(SOUND_KEY, soundOn ? "on" : "off"); } catch (e) { /* ignore */ }
-      setSoundUI();
-      buzz(6);
-      if (soundOn) playDateChime();
+    document.getElementById("next-month").addEventListener("click", () => {
+      buzz(5); state.month.setMonth(state.month.getMonth() + 1); renderHeader(); renderChips(); renderView();
     });
-    document.getElementById("lock-btn").addEventListener("click", () => {
-      buzz(8);
-      try { localStorage.removeItem(AUTH_KEY); } catch (e) { /* ignore */ }
-      showGate();
-    });
-    document.getElementById("prev-month").addEventListener("click", () => { buzz(6); goToMonth(-1); });
-    document.getElementById("next-month").addEventListener("click", () => { buzz(6); goToMonth(1); });
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => { buzz(6); setActiveTab(btn.dataset.view); });
-    });
-    document.getElementById("sheet-close").addEventListener("click", closeSheet);
-    document.getElementById("sheet-backdrop").addEventListener("click", closeSheet);
 
-    // Swipe left/right on the content area to change months
-    const content = document.getElementById("content");
+    // Swipe left/right anywhere in the content to change months
+    const swipeEl = document.getElementById("content");
     let touchStartX = 0, touchStartY = 0, touchStartT = 0;
-    content.addEventListener("touchstart", (e) => {
+    swipeEl.addEventListener("touchstart", (e) => {
       const t = e.changedTouches[0];
       touchStartX = t.clientX; touchStartY = t.clientY; touchStartT = Date.now();
     }, { passive: true });
-    content.addEventListener("touchend", (e) => {
+    swipeEl.addEventListener("touchend", (e) => {
       const t = e.changedTouches[0];
       const dx = t.clientX - touchStartX;
       const dy = t.clientY - touchStartY;
       const dt = Date.now() - touchStartT;
       if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 600) {
-        buzz(6);
-        goToMonth(dx < 0 ? 1 : -1);
+        buzz(5);
+        state.month.setMonth(state.month.getMonth() + (dx < 0 ? 1 : -1));
+        renderHeader(); renderChips(); renderView();
       }
     }, { passive: true });
 
-    // Swipe down on the sheet's grabber/header area to dismiss it
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        buzz(6); setActiveTab(btn.getAttribute("data-view"));
+      });
+    });
+
+    document.getElementById("fab-add").addEventListener("click", () => {
+      buzz(8); openFormSheet(null);
+    });
+
+    document.getElementById("sound-toggle").addEventListener("click", () => {
+      soundOn = !soundOn;
+      buzz(6);
+      try { localStorage.setItem(SOUND_KEY, soundOn ? "on" : "off"); } catch(e){}
+      setSoundUI();
+      if (soundOn) { primeAudio(); playTone([880], {dur:0.1, vol:0.03}); }
+    });
+    setSoundUI();
+
+    document.getElementById("lock-btn").addEventListener("click", () => {
+      buzz([8, 30, 8]);
+      try { localStorage.removeItem(AUTH_KEY); } catch(e){}
+      showGate();
+    });
+
+    document.getElementById("sheet-close").addEventListener("click", closeSheet);
+    document.getElementById("sheet-backdrop").addEventListener("click", closeSheet);
+    document.getElementById("form-close").addEventListener("click", closeFormSheet);
+    document.getElementById("form-backdrop").addEventListener("click", closeFormSheet);
+    document.getElementById("form-save").addEventListener("click", saveForm);
+    document.getElementById("form-delete").addEventListener("click", deleteEvent);
+
+    /* Smooth Drag-to-Close Panel Physics Implementation */
     const dragZone = document.getElementById("sheet-drag-zone");
     const panel = document.getElementById("sheet-panel");
     let dragStartY = 0, dragY = 0, dragging = false;
@@ -1151,15 +1207,18 @@
     }, { passive: true });
   }
 
-  // ---------- Init ----------
+  // ---------- Init Lifecycle ----------
   document.addEventListener("DOMContentLoaded", () => {
     setupAmbientBackground();
     setupGate();
     setupShellControls();
     setupRipples();
+    
+    // Explicitly prime audio on first interaction to unlock iOS Safari Web Audio API
     document.addEventListener("touchstart", primeAudio, { passive: true, once: true });
+    
     let authed = false;
-    try { authed = localStorage.getItem(AUTH_KEY) === "granted"; } catch (e) { /* storage blocked */ }
+    try { authed = localStorage.getItem(AUTH_KEY) === "granted"; } catch (e) {}
     if (authed) showShell(); else showGate();
 
     document.addEventListener("visibilitychange", () => {
@@ -1170,9 +1229,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
-    });
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
   }
 })();
 </script>
