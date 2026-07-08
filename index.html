@@ -25,11 +25,18 @@ html, body { height: 100%; overscroll-behavior: none; }
 body {
   margin: 0;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  background: #09090b; /* Deepened dark canvas base for the mesh glow to pop against */
+  background: #09090b; 
   color: #E7E4F4;
   -webkit-tap-highlight-color: transparent;
 }
 .font-display { font-family: 'Fraunces', serif; font-style: italic; }
+
+/* Removes mobile Safari default gray tap flash */
+button, input, .category-button, .tap-fx {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  outline: none;
+}
 
 /* Enhanced Ultra-Glassmorphism Styling */
 .glass {
@@ -89,10 +96,37 @@ body {
 
 .day-cell { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), opacity .2s ease; }
 .day-cell:active { transform: scale(0.96); }
-.chip { transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
+.chip { transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); transform: translateZ(0); }
 .chip:active { transform: scale(0.95); }
 .tap-fx { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
 .tap-fx:active { transform: scale(0.96); }
+
+/* Floating micro-feedback toast alerts */
+#toast-notification {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom) + 90px);
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(24, 22, 38, 0.92);
+  color: #E7E4F4;
+  padding: 12px 26px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.1);
+  z-index: 9999;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+  opacity: 0;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+#toast-notification.toast-show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
 
 input:focus-visible, button:focus-visible {
   outline: 2px solid #7C5CFC;
@@ -238,6 +272,8 @@ input:focus-visible, button:focus-visible {
   </div>
 </div>
 
+<div id="toast-notification">✨ Plan saved successfully!</div>
+
 <script>
 (function () {
   // ---- CHANGE ME: sha256 hex of your 4-digit passcode (default "1234") ----
@@ -293,6 +329,16 @@ input:focus-visible, button:focus-visible {
     if (navigator.vibrate) {
       try { navigator.vibrate(ms || 8); } catch (e) { /* hardware vibration context protected */ }
     }
+  }
+
+  // --- Dynamic Floating Toast Notification Handler ---
+  function showToast(message = "✨ Plan saved successfully!") {
+    const toast = document.getElementById('toast-notification');
+    toast.textContent = message;
+    toast.classList.add('toast-show');
+    setTimeout(() => {
+      toast.classList.remove('toast-show');
+    }, 3000);
   }
 
   // ---------- Sound (Synthesized Chords) ----------
@@ -476,7 +522,7 @@ input:focus-visible, button:focus-visible {
     boxes.forEach((box, i) => {
       box.addEventListener("touchstart", primeAudio, { passive: true, once: true });
       box.addEventListener("input", () => {
-        primeAudio();
+        primeAudio(); // This actively un-mutes iOS Safari audio context on touch
         box.value = box.value.replace(/[^0-9]/g, "").slice(0, 1);
         errorEl.textContent = "";
         if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
@@ -490,16 +536,29 @@ input:focus-visible, button:focus-visible {
   }
 
   function showGate() {
-    document.getElementById("gate").classList.remove("hidden");
+    const gate = document.getElementById("gate");
+    gate.style.transition = "none";
+    gate.style.opacity = "1";
+    gate.style.filter = "none";
+    gate.style.pointerEvents = "auto";
+    gate.classList.remove("hidden");
     document.getElementById("shell").classList.add("hidden");
     if (window._resetGateBoxes) window._resetGateBoxes();
     setTimeout(() => { const first = document.querySelector('[data-idx="0"]'); if (first) first.focus(); }, 50);
   }
 
   function showShell() {
-    document.getElementById("gate").classList.add("hidden");
-    document.getElementById("shell").classList.remove("hidden");
-    if (!db) initFirebase();
+    const gate = document.getElementById("gate");
+    gate.style.transition = "opacity 0.6s ease-out, filter 0.6s ease-out";
+    gate.style.opacity = "0";
+    gate.style.filter = "blur(10px)";
+    gate.style.pointerEvents = "none";
+    
+    setTimeout(() => {
+      gate.classList.add("hidden");
+      document.getElementById("shell").classList.remove("hidden");
+      if (!db) initFirebase();
+    }, 600);
   }
 
   // ---------- Firebase Integration ----------
@@ -927,16 +986,18 @@ input:focus-visible, button:focus-visible {
     });
   }
 
+  /* Upgraded High-Aesthetic Mobile Active Glow for Form Categories */
   function renderFormCategories() {
     const container = document.getElementById("form-category-chips");
     let html = "";
     Object.keys(CATEGORIES).forEach((catKey) => {
       const cat = CATEGORIES[catKey];
       const active = formState.category === catKey;
+      
       html += `
         <button data-cat="${catKey}" class="chip px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
           active ? "bg-white/15 text-white" : "bg-white/5 text-white/40"
-        }" style="${active ? `border: 1px solid ${cat.color}; box-shadow: 0 0 8px ${cat.color}30;` : "border: 1px solid transparent;"}">
+        }" style="${active ? `border: 2px solid ${cat.color}; box-shadow: 0 0 15px ${cat.color}60, 0 0 30px ${cat.color}40; transform: scale(1.05);` : `border: 1px solid transparent;`}">
           <span>${cat.emoji}</span> <span>${cat.label}</span>
         </button>
       `;
@@ -970,7 +1031,7 @@ input:focus-visible, button:focus-visible {
     };
 
     if (formState.category === "date") {
-      playDateChime(); /* Triggers premium arpeggio chime */
+      playDateChime(); 
     } else {
       playTone([783.99, 987.77], { gap: 0.06, dur: 0.18, vol: 0.04 });
     }
@@ -978,11 +1039,11 @@ input:focus-visible, button:focus-visible {
 
     if (currentFormEvent) {
       db.collection("events").doc(currentFormEvent.id).update(payload)
-        .then(() => { closeFormSheet(); })
+        .then(() => { closeFormSheet(); showToast("✨ Plan updated successfully!"); })
         .catch((err) => { errEl.textContent = "Could not save updates."; });
     } else {
       db.collection("events").add(payload)
-        .then(() => { closeFormSheet(); })
+        .then(() => { closeFormSheet(); showToast(); })
         .catch((err) => { errEl.textContent = "Could not create event."; });
     }
   }
@@ -1091,7 +1152,10 @@ input:focus-visible, button:focus-visible {
     setupGate();
     setupShellControls();
     setupRipples();
+    
+    // Explicitly prime audio on first interaction to unlock iOS Safari Web Audio API
     document.addEventListener("touchstart", primeAudio, { passive: true, once: true });
+    
     let authed = false;
     try { authed = localStorage.getItem(AUTH_KEY) === "granted"; } catch (e) {}
     if (authed) showShell(); else showGate();
