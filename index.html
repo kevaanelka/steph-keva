@@ -562,11 +562,12 @@
           renderView();
         }
       },
-      () => {
+      (err) => {
+        const isPermission = err && err.code === "permission-denied";
         showContentMessage(`
           <p class="text-2xl mb-2">🔌</p>
-          <p class="font-display text-lg mb-1">Lost connection</p>
-          <p class="text-sm opacity-60 mb-3">Check your internet and try again.</p>
+          <p class="font-display text-lg mb-1">${isPermission ? "Almost — check Firestore rules" : "Lost connection"}</p>
+          <p class="text-sm opacity-60 mb-3">${isPermission ? "Firestore is reachable, but the security rules are blocking access. Double-check the rules from the README are published, and that Anonymous sign-in is enabled." : "Check your internet and try again."}</p>
           <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>`);
         const retry = document.getElementById("retry-load");
         if (retry) retry.addEventListener("click", subscribeEvents);

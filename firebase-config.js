@@ -9,10 +9,10 @@
 // message instead of trying (and failing) to connect.
 
 window.FIREBASE_CONFIG = {
-  apiKey: "PASTE_ME",
-  authDomain: "PASTE_ME",
-  projectId: "PASTE_ME",
-  storageBucket: "PASTE_ME",
-  messagingSenderId: "PASTE_ME",
-  appId: "PASTE_ME",
+  apiKey: "AIzaSyB3QQTxRBBHYItC4rhEGSqQmIVeiYP9dBo",
+  authDomain: "stephanie-dish.firebaseapp.com",
+  projectId: "stephanie-dish",
+  storageBucket: "stephanie-dish.firebasestorage.app",
+  messagingSenderId: "269606122063",
+  appId: "1:269606122063:web:a3fe04a7d74bf2ce94703a",
 };
