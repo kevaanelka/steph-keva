@@ -5,13 +5,62 @@ A private, mobile-first shared calendar. Static site, no backend, no build step.
 ## Files
 
 ```
-index.html        the entire app (UI + logic)
-schedule.json      your editable data — edit this to add/change plans
-manifest.json      PWA config (name, icons, theme color)
-sw.js              offline caching (service worker)
-icons/             home screen icons (192px, 512px) — cropped from your photo
-images/lock-bg.jpg the passcode-screen background photo
+index.html          the entire app (UI + logic)
+firebase-config.js   your Firebase project keys — fill this in (see below)
+manifest.json        PWA config (name, icons, theme color)
+sw.js                offline caching (service worker)
+icons/               home screen icons (192px, 512px) — cropped from your photo
+images/lock-bg.jpg   the passcode-screen background photo
+schedule.json        no longer used by the app — kept only as a readable
+                      backup of the original July data (it's baked into
+                      index.html as a one-time seed for a fresh database)
 ```
+
+## Live shared editing (Firebase setup)
+
+Plans now live in a small free Firestore database instead of a static file,
+so adding something in the app syncs to both of your phones instantly. This
+needs a one-time, free setup:
+
+1. Go to **console.firebase.google.com**, sign in with any Google account.
+2. **Add project** → name it anything → turn **off** Google Analytics (not
+   needed) → Create.
+3. On the project overview page, click the **Web icon `</>`** to register a
+   web app. Nickname anything. Leave "Also set up Firebase Hosting"
+   **unchecked** (you're already on GitHub Pages/Vercel/Netlify).
+4. You'll see a `firebaseConfig` object with 6 values (`apiKey`,
+   `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`).
+   These are safe to be public — real security comes from step 6, not from
+   hiding these. Paste them into `firebase-config.js`, replacing the
+   `"PASTE_ME"` placeholders.
+5. Left sidebar → **Build → Firestore Database → Create database** → pick a
+   region close to you → **Production mode**.
+6. Left sidebar → **Build → Authentication → Get started → Sign-in method**
+   tab → **Anonymous** → Enable → Save. (This quietly verifies "this is
+   someone using our app" with no login screen — your 4-digit passcode is
+   still the actual gate.)
+7. Back in **Firestore Database → Rules**, replace the contents with:
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /events/{eventId} {
+         allow read, write: if request.auth != null;
+       }
+     }
+   }
+   ```
+   Click **Publish**.
+8. Deploy (push `firebase-config.js` with your real values). The first
+   person to open the app will automatically seed the database with the
+   original July schedule — nothing is lost in the switch.
+
+Until `firebase-config.js` is filled in, the app shows a friendly
+"not configured yet" message instead of a broken screen.
+
+**Editing in the app:** tap the **+** button (bottom right) to add a plan
+from scratch, or open any day and tap **Add to this day** / the pencil icon
+on an existing plan to edit it. There's a **Delete** button in edit mode too.
 
 ## What's interactive now
 
@@ -69,31 +118,14 @@ This is a deterrent for casual lookers, not real security — anyone who reads
 the source can brute-force 4 digits offline. Don't put anything in here you
 wouldn't want a determined visitor to see.
 
-## Update the schedule
+## Adding a new category
 
-Edit `schedule.json` directly. Each event looks like:
-
-```json
-{
-  "id": "20260814-1",
-  "date": "2026-08-14",
-  "block": ["morning"],
-  "category": "sports",
-  "title": "Run — GBK",
-  "note": ""
-}
-```
-
-- `block`: one of `["morning"]`, `["afternoon"]`, `["night"]`, `["anytime"]`,
-  or a span like `["afternoon","night"]` for something that runs across blocks.
-- `category`: must match a key under `categories` at the top of the file
-  (`sports`, `social`, `church`, `date`, `other`). Add your own category
-  there any time — give it a `label`, `color` (hex), and `emoji`, and it
-  shows up automatically in the filter chips and everywhere else.
-- Month navigation (‹ ›) works for any month you add data for — just add
-  more `events` entries with the right `date` and it'll appear.
-
-Commit and push — Vercel/Netlify redeploy automatically.
+Plans are edited in the app now (see "Live shared editing" above), but
+categories are still static config for simplicity. To add one, open
+`index.html`, find the `CATEGORIES` constant near the top of the `<script>`
+block, and add a key with a `label`, `color` (hex), and `emoji` — it shows up
+automatically in the filter chips, the add/edit form, and everywhere else.
+Commit and push — Vercel/Netlify/Pages redeploy automatically.
 
 ## Regenerating icons
 

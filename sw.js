@@ -1,12 +1,12 @@
-// Bump this version whenever you change index.html / schedule.json structure
-// so returning visitors get the fresh files instead of a stale cache.
-const CACHE_NAME = "us-schedule-v3";
+// Bump this version whenever you change index.html structure so returning
+// visitors get the fresh files instead of a stale cache.
+const CACHE_NAME = "us-schedule-v4";
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./schedule.json",
+  "./firebase-config.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./images/lock-bg.jpg"
@@ -30,13 +30,16 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Network-first for the app shell (HTML/manifest/data) so you always get the
+// Network-first for the app shell (HTML/manifest/config) so you always get the
 // latest version when online — the cache is only a fallback for offline use.
 // Cache-first only for heavy, rarely-changing static assets (icons/photo).
-const NETWORK_FIRST_SUFFIXES = ["schedule.json", "index.html", "manifest.json", "/"];
+// Live schedule data itself lives in Firestore, which has its own offline cache.
+const NETWORK_FIRST_SUFFIXES = ["index.html", "manifest.json", "firebase-config.js", "/"];
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return; // let cross-origin (Firebase SDK, Firestore, fonts) pass through untouched
+
   const isNetworkFirst = NETWORK_FIRST_SUFFIXES.some((s) => url.pathname === s || url.pathname.endsWith(s));
 
   if (isNetworkFirst) {

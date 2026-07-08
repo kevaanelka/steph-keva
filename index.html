@@ -16,6 +16,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500;1,9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="./firebase-config.js"></script>
 <style>
   html, body { height: 100%; overscroll-behavior: none; }
   body {
@@ -162,6 +166,10 @@
         <div id="view-timeline" class="hidden"></div>
       </main>
 
+      <button id="fab-add" class="tap-fx fixed z-20 rounded-full flex items-center justify-center" style="right:20px; bottom:calc(env(safe-area-inset-bottom) + 92px); width:56px; height:56px; background:linear-gradient(135deg, #7C5CFC, #FF6F91); box-shadow:0 8px 24px rgba(124,92,252,0.45);" aria-label="Add a plan">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+
       <nav class="fixed bottom-0 inset-x-0 z-20 px-6" style="padding-bottom:calc(env(safe-area-inset-bottom) + 16px); padding-top:10px;">
         <div class="glass-strong rounded-full p-1 flex relative max-w-xs mx-auto">
           <div id="tab-indicator" class="absolute top-1 bottom-1 left-1 rounded-full" style="width:calc(50% - 4px); background:rgba(255,255,255,0.16); transition: transform .3s cubic-bezier(.32,.72,0,1);"></div>
@@ -192,6 +200,39 @@
         </div>
       </div>
 
+      <div id="form-backdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 opacity-0 sheet-backdrop"></div>
+      <div id="form-sheet" class="hidden fixed inset-x-0 bottom-0 z-40 sheet sheet-hidden">
+        <div id="form-panel" class="glass-strong rounded-t-[28px] max-h-[85vh] overflow-y-auto no-scrollbar px-5 pt-4" style="padding-bottom:calc(env(safe-area-inset-bottom) + 28px);">
+          <div class="w-10 h-1.5 rounded-full bg-white/20 mx-auto mb-4"></div>
+          <div class="flex items-center justify-between mb-4">
+            <p id="form-title-label" class="font-display text-xl">New plan</p>
+            <button id="form-close" class="tap-fx w-8 h-8 rounded-full glass flex items-center justify-center" aria-label="Close">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Date</label>
+          <input id="form-date" type="date" class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-4" style="color-scheme: dark;" />
+
+          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">When</label>
+          <div id="form-block-chips" class="flex flex-wrap gap-2 mb-4"></div>
+
+          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Category</label>
+          <div id="form-category-chips" class="flex flex-wrap gap-2 mb-4"></div>
+
+          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">What's happening</label>
+          <input id="form-title-input" type="text" maxlength="80" placeholder="e.g. Dinner at..." class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-4" />
+
+          <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Note (optional)</label>
+          <input id="form-note-input" type="text" maxlength="140" placeholder="Add a detail..." class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-2" />
+
+          <p id="form-error" class="text-xs h-4 mt-1 mb-2" style="color:#FF6F91"></p>
+
+          <button id="form-save" class="tap-fx w-full py-3.5 rounded-2xl text-sm font-bold mt-2" style="background:linear-gradient(135deg, #7C5CFC, #FF6F91); color:white;">Save</button>
+          <button id="form-delete" class="hidden tap-fx w-full py-3 rounded-2xl text-sm font-semibold mt-2.5" style="background:rgba(255,111,145,0.12); color:#FF6F91;">Delete plan</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -203,13 +244,49 @@
   const PASSCODE_HASH = "5909daa6fb5cf239d52027367f111ecd9c280866d73f8bd47cda43ef5495af6a"; // sha256("1605")
   const AUTH_KEY = "us_schedule_auth";
 
+  // Categories are static config, not stored data — edit here any time.
+  const CATEGORIES = {
+    sports: { label: "Sports", color: "#2DD9C4", emoji: "🏃" },
+    social: { label: "Social", color: "#FFB454", emoji: "🎉" },
+    church: { label: "Church", color: "#7C5CFC", emoji: "🙏" },
+    date: { label: "Date", color: "#FF6F91", emoji: "💕" },
+    other: { label: "Other", color: "#9CA3AF", emoji: "✨" },
+  };
+
+  // One-time seed if the shared database is empty (fresh Firebase project) —
+  // this is your original July 2026 schedule so nothing gets lost switching over.
+  const SEED_EVENTS = [
+    { date: "2026-07-11", block: ["morning"], category: "sports", title: "Tennis", note: "Unconfirmed — marked with '?' in original notes" },
+    { date: "2026-07-11", block: ["afternoon"], category: "social", title: "Hangout — Arnold & friends", note: "" },
+    { date: "2026-07-11", block: ["night"], category: "social", title: "Hangout — Randy & friends", note: "" },
+    { date: "2026-07-12", block: ["morning"], category: "church", title: "Church — Depok", note: "" },
+    { date: "2026-07-12", block: ["afternoon"], category: "sports", title: "Run — GBK", note: "With SoC (Servants of Christ) group" },
+    { date: "2026-07-14", block: ["anytime"], category: "sports", title: "Run — GBK", note: "" },
+    { date: "2026-07-16", block: ["anytime"], category: "other", title: "Dreamstone", note: "Details TBD — add a note here once confirmed" },
+    { date: "2026-07-17", block: ["anytime"], category: "church", title: "Orphanage visit", note: "" },
+    { date: "2026-07-17", block: ["anytime"], category: "church", title: "SoC Bekasi", note: "" },
+    { date: "2026-07-18", block: ["anytime"], category: "date", title: "Date night", note: "Location TBD" },
+    { date: "2026-07-21", block: ["anytime"], category: "sports", title: "Run — GBK", note: "" },
+    { date: "2026-07-22", block: ["anytime"], category: "church", title: "SoC Jakarta", note: "" },
+    { date: "2026-07-23", block: ["anytime"], category: "sports", title: "Run — GBK", note: "" },
+    { date: "2026-07-25", block: ["morning", "afternoon"], category: "social", title: "Christi Riama", note: "" },
+    { date: "2026-07-25", block: ["afternoon", "night"], category: "church", title: "Worship night", note: "" },
+    { date: "2026-07-28", block: ["anytime"], category: "sports", title: "Run — GBK", note: "" },
+    { date: "2026-07-30", block: ["anytime"], category: "sports", title: "Run — GBK", note: "" },
+    { date: "2026-07-31", block: ["anytime"], category: "church", title: "SoC Bekasi", note: "" },
+  ];
+
   const state = {
-    data: null,
+    events: [],
+    ready: false, // true once the first live snapshot has arrived
     view: "calendar",
     month: new Date(),
-    filters: new Set(),
+    filters: new Set(Object.keys(CATEGORIES)),
     selectedDate: null,
   };
+
+  let db = null;
+  let firebaseUnsub = null;
 
   const REDUCE_MOTION = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -340,7 +417,7 @@
   function toDateStr(y, mIdx, d) { return `${y}-${pad2(mIdx + 1)}-${pad2(d)}`; }
 
   function eventsForDate(dateStr) {
-    return state.data.events.filter((e) => e.date === dateStr);
+    return state.events.filter((e) => e.date === dateStr);
   }
   function filteredEventsForDate(dateStr) {
     return eventsForDate(dateStr).filter((e) => state.filters.has(e.category));
@@ -425,36 +502,89 @@
   function showShell() {
     document.getElementById("gate").classList.add("hidden");
     document.getElementById("shell").classList.remove("hidden");
-    if (!state.data) loadSchedule();
+    if (!db) initFirebase();
   }
 
-  // ---------- Data loading ----------
-  function loadSchedule() {
-    fetch("./schedule.json")
-      .then((r) => {
-        if (!r.ok) throw new Error("bad response");
-        return r.json();
-      })
-      .then((data) => {
-        state.data = data;
-        state.filters = new Set(Object.keys(data.categories));
-        determineInitialMonth();
-        renderHeader();
-        renderChips();
-        setActiveTab("calendar");
-      })
-      .catch(() => {
-        document.getElementById("content").innerHTML = `
-          <div class="glass rounded-2xl p-6 text-center mt-10">
-            <p class="mb-3 text-sm opacity-80">Couldn't load schedule.json</p>
-            <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>
-          </div>`;
-        document.getElementById("retry-load").addEventListener("click", loadSchedule);
+  // ---------- Firebase (shared live data) ----------
+  function showContentMessage(html) {
+    document.getElementById("content").innerHTML = `<div class="glass rounded-2xl p-6 text-center mt-10">${html}</div>`;
+  }
+
+  function initFirebase() {
+    if (typeof firebase === "undefined" || !window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === "PASTE_ME") {
+      showContentMessage(`
+        <p class="text-2xl mb-2">🛠️</p>
+        <p class="font-display text-lg mb-1">Almost there</p>
+        <p class="text-sm opacity-60">Firebase isn't configured yet — fill in <code>firebase-config.js</code> with your project's config to turn on shared, live-synced plans.</p>`);
+      return;
+    }
+    try {
+      firebase.initializeApp(window.FIREBASE_CONFIG);
+      db = firebase.firestore();
+      db.enablePersistence({ synchronizeTabs: true }).catch(() => { /* fine if unsupported / multiple tabs */ });
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) subscribeEvents();
       });
+      firebase.auth().signInAnonymously().catch(() => {
+        showContentMessage(`
+          <p class="text-2xl mb-2">🔌</p>
+          <p class="font-display text-lg mb-1">Couldn't connect</p>
+          <p class="text-sm opacity-60 mb-3">Check that Anonymous sign-in is enabled in Firebase Authentication.</p>
+          <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>`);
+        const retry = document.getElementById("retry-load");
+        if (retry) retry.addEventListener("click", () => { db = null; initFirebase(); });
+      });
+    } catch (e) {
+      showContentMessage(`<p class="text-sm opacity-70">Couldn't set up the connection. Double-check your Firebase config values.</p>`);
+    }
+  }
+
+  function subscribeEvents() {
+    if (firebaseUnsub) firebaseUnsub();
+    firebaseUnsub = db.collection("events").onSnapshot(
+      (snapshot) => {
+        const events = [];
+        snapshot.forEach((doc) => events.push(Object.assign({ id: doc.id }, doc.data())));
+        state.events = events;
+
+        if (events.length === 0 && !state.ready) {
+          seedInitialEvents();
+        }
+
+        if (!state.ready) {
+          state.ready = true;
+          determineInitialMonth();
+          renderHeader();
+          renderChips();
+          setActiveTab("calendar");
+        } else {
+          renderChips();
+          renderView();
+        }
+      },
+      () => {
+        showContentMessage(`
+          <p class="text-2xl mb-2">🔌</p>
+          <p class="font-display text-lg mb-1">Lost connection</p>
+          <p class="text-sm opacity-60 mb-3">Check your internet and try again.</p>
+          <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>`);
+        const retry = document.getElementById("retry-load");
+        if (retry) retry.addEventListener("click", subscribeEvents);
+      }
+    );
+  }
+
+  function seedInitialEvents() {
+    const batch = db.batch();
+    SEED_EVENTS.forEach((ev) => {
+      const ref = db.collection("events").doc();
+      batch.set(ref, ev);
+    });
+    batch.commit().catch(() => { /* another device may have seeded first — fine either way */ });
   }
 
   function determineInitialMonth() {
-    const dates = state.data.events.map((e) => e.date).sort();
+    const dates = state.events.map((e) => e.date).sort();
     if (dates.length === 0) { state.month = new Date(); return; }
     const now = new Date();
     const todayYM = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
@@ -473,11 +603,11 @@
   // ---------- Filter chips ----------
   function renderChips() {
     const wrap = document.getElementById("chips");
-    const total = Object.keys(state.data.categories).length;
+    const total = Object.keys(CATEGORIES).length;
     const allActive = state.filters.size === total;
 
     let html = `<button data-chip="__all" class="chip glass px-3.5 py-1.5 rounded-full text-xs font-semibold" style="${allActive ? "background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.28);" : ""}">All</button>`;
-    for (const [key, cat] of Object.entries(state.data.categories)) {
+    for (const [key, cat] of Object.entries(CATEGORIES)) {
       const active = state.filters.has(key);
       html += `<button data-chip="${key}" class="chip px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5" style="background:${active ? cat.color + "26" : "rgba(255,255,255,0.05)"}; border:1px solid ${active ? cat.color + "80" : "rgba(255,255,255,0.08)"}; color:${active ? cat.color : "rgba(231,228,244,0.55)"}">
         <span>${cat.emoji}</span><span>${cat.label}</span>
@@ -490,7 +620,7 @@
         buzz(6);
         const key = btn.dataset.chip;
         if (key === "__all") {
-          state.filters = new Set(Object.keys(state.data.categories));
+          state.filters = new Set(Object.keys(CATEGORIES));
         } else if (state.filters.has(key)) {
           state.filters.delete(key);
         } else {
@@ -565,20 +695,18 @@
     let cellsHtml = "";
     cells.forEach((cell) => {
       if (!cell.inMonth) { cellsHtml += `<div class="aspect-square"></div>`; return; }
-      const raw = eventsForDate(cell.dateStr);
       const filtered = filteredEventsForDate(cell.dateStr);
       const cats = [...new Set(filtered.map((e) => e.category))];
       const isToday = cell.dateStr === todayStr;
       const hasFiltered = filtered.length > 0;
-      const clickable = raw.length > 0;
 
       let segments = "";
       cats.slice(0, 4).forEach((catKey) => {
-        segments += `<span class="flex-1 h-[3px] rounded-full" style="background:${state.data.categories[catKey].color}"></span>`;
+        segments += `<span class="flex-1 h-[3px] rounded-full" style="background:${CATEGORIES[catKey].color}"></span>`;
       });
 
       cellsHtml += `
-        <button data-date="${cell.dateStr}" class="day-cell aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 ${hasFiltered ? "glass" : ""} ${isToday ? "ring-1 ring-white/30" : ""}" style="${hasFiltered ? "" : "opacity:0.32;"} ${clickable ? "" : "cursor:default;"}">
+        <button data-date="${cell.dateStr}" class="day-cell aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 ${hasFiltered ? "glass" : ""} ${isToday ? "ring-1 ring-white/30" : ""}" style="${hasFiltered ? "" : "opacity:0.5;"}">
           <span class="text-[15px] font-semibold tabular-nums">${cell.day}</span>
           ${hasFiltered ? `<span class="flex w-7 gap-[3px]">${segments}</span>` : ""}
         </button>`;
@@ -592,11 +720,7 @@
     `;
 
     container.querySelectorAll("[data-date]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const ds = btn.dataset.date;
-        if (eventsForDate(ds).length === 0) return;
-        openSheet(ds);
-      });
+      btn.addEventListener("click", () => openSheet(btn.dataset.date));
     });
   }
 
@@ -623,7 +747,7 @@
       const wd = dateObj.toLocaleDateString("en-US", { weekday: "short" });
       const sorted = [...filtered].sort((a, b) => order[a.block[0]] - order[b.block[0]]);
       const dotsHtml = sorted.map((e) => {
-        const c = state.data.categories[e.category];
+        const c = CATEGORIES[e.category];
         return `<span class="inline-flex items-center gap-1 text-[12px] rounded-full px-2 py-0.5" style="background:${c.color}1f;color:${c.color}">${c.emoji} ${escapeHtml(e.title)}</span>`;
       }).join("");
 
@@ -642,7 +766,7 @@
         <div class="glass rounded-2xl p-8 text-center mt-6">
           <div class="text-3xl mb-2">🗓️</div>
           <p class="font-display text-lg mb-1">Nothing here yet</p>
-          <p class="text-sm opacity-60">${anyRaw ? "No plans match your filters this month." : "Add entries to schedule.json to see them here."}</p>
+          <p class="text-sm opacity-60">${anyRaw ? "No plans match your filters this month." : "Tap the + button to add your first plan."}</p>
         </div>`;
       return;
     }
@@ -677,7 +801,7 @@
         <p class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">${sec.emoji} ${sec.label}</p>
         <div class="flex flex-col gap-2">
           ${items.map((e) => {
-            const cat = state.data.categories[e.category];
+            const cat = CATEGORIES[e.category];
             const span = e.block.length > 1 ? `<span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full opacity-60" style="background:rgba(255,255,255,0.08);">${blockLabel[e.block[0]]}–${blockLabel[e.block[e.block.length - 1]]}</span>` : "";
             return `<div class="glass rounded-2xl p-3.5 flex items-start gap-3" style="border-left:3px solid ${cat.color};">
               <span class="text-xl leading-none mt-0.5">${cat.emoji}</span>
@@ -688,13 +812,31 @@
                 </div>
                 ${e.note ? `<p class="text-[13px] opacity-60 mt-1 leading-snug">${escapeHtml(e.note)}</p>` : ""}
               </div>
+              <button data-edit-id="${e.id}" class="tap-fx w-7 h-7 rounded-full flex items-center justify-center opacity-60 flex-shrink-0" style="background:rgba(255,255,255,0.06);" aria-label="Edit">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
             </div>`;
           }).join("")}
         </div>
       </div>`;
     });
 
-    document.getElementById("sheet-body").innerHTML = html || `<p class="text-sm opacity-60 text-center py-6">Nothing scheduled.</p>`;
+    html += `<button id="sheet-add-btn" class="tap-fx w-full mt-1 py-3 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold opacity-80" style="background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.18);">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      Add to this day
+    </button>`;
+
+    document.getElementById("sheet-body").innerHTML = html;
+
+    document.getElementById("sheet-add-btn").addEventListener("click", () => {
+      openForm(null, dateStr);
+    });
+    document.querySelectorAll("[data-edit-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ev = state.events.find((e) => e.id === btn.dataset.editId);
+        if (ev) openForm(ev);
+      });
+    });
 
     const panel = document.getElementById("sheet-panel");
     panel.style.transition = "";
@@ -736,9 +878,158 @@
     }, 380);
   }
 
+  // ---------- Add / Edit form ----------
+  const BLOCK_OPTIONS = [
+    { key: "morning", label: "🌅 Morning" },
+    { key: "afternoon", label: "☀️ Afternoon" },
+    { key: "night", label: "🌙 Night" },
+    { key: "anytime", label: "🕒 Anytime" },
+  ];
+  let formBlocks = new Set();
+  let formCategory = null;
+  let editingId = null;
+
+  function renderFormBlockChips() {
+    const wrap = document.getElementById("form-block-chips");
+    wrap.innerHTML = BLOCK_OPTIONS.map((b) => {
+      const active = formBlocks.has(b.key);
+      return `<button type="button" data-block="${b.key}" class="chip px-3.5 py-1.5 rounded-full text-xs font-semibold" style="background:${active ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.05)"};border:1px solid ${active ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.08)"};">${b.label}</button>`;
+    }).join("");
+    wrap.querySelectorAll("[data-block]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        buzz(6);
+        const key = btn.dataset.block;
+        if (key === "anytime") {
+          formBlocks = new Set(["anytime"]);
+        } else {
+          formBlocks.delete("anytime");
+          if (formBlocks.has(key)) formBlocks.delete(key); else formBlocks.add(key);
+        }
+        renderFormBlockChips();
+      });
+    });
+  }
+
+  function renderFormCategoryChips() {
+    const wrap = document.getElementById("form-category-chips");
+    wrap.innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => {
+      const active = formCategory === key;
+      return `<button type="button" data-cat="${key}" class="chip px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5" style="background:${active ? cat.color + "26" : "rgba(255,255,255,0.05)"};border:1px solid ${active ? cat.color + "80" : "rgba(255,255,255,0.08)"};color:${active ? cat.color : "rgba(231,228,244,0.55)"};"><span>${cat.emoji}</span><span>${cat.label}</span></button>`;
+    }).join("");
+    wrap.querySelectorAll("[data-cat]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        buzz(6);
+        formCategory = btn.dataset.cat;
+        renderFormCategoryChips();
+      });
+    });
+  }
+
+  function openForm(existing, prefillDate) {
+    editingId = existing ? existing.id : null;
+    document.getElementById("form-title-label").textContent = existing ? "Edit plan" : "New plan";
+    document.getElementById("form-error").textContent = "";
+    document.getElementById("form-delete").classList.toggle("hidden", !existing);
+
+    let dateVal = prefillDate;
+    if (existing) dateVal = existing.date;
+    if (!dateVal) {
+      const now = new Date();
+      const inViewedMonth = now.getFullYear() === state.month.getFullYear() && now.getMonth() === state.month.getMonth();
+      dateVal = inViewedMonth ? toDateStr(now.getFullYear(), now.getMonth(), now.getDate()) : toDateStr(state.month.getFullYear(), state.month.getMonth(), 1);
+    }
+    document.getElementById("form-date").value = dateVal;
+    document.getElementById("form-title-input").value = existing ? existing.title : "";
+    document.getElementById("form-note-input").value = existing ? (existing.note || "") : "";
+
+    formBlocks = new Set(existing ? existing.block : []);
+    formCategory = existing ? existing.category : null;
+    renderFormBlockChips();
+    renderFormCategoryChips();
+
+    const backdrop = document.getElementById("form-backdrop");
+    const sheetEl = document.getElementById("form-sheet");
+    backdrop.classList.remove("hidden");
+    sheetEl.classList.remove("hidden");
+    requestAnimationFrame(() => {
+      backdrop.classList.remove("opacity-0");
+      backdrop.classList.add("opacity-100");
+      sheetEl.classList.remove("sheet-hidden");
+    });
+    document.body.style.overflow = "hidden";
+    setTimeout(() => document.getElementById("form-title-input").focus(), 350);
+  }
+
+  function closeForm() {
+    const panel = document.getElementById("form-panel");
+    panel.style.transition = "";
+    panel.style.transform = "";
+    const backdrop = document.getElementById("form-backdrop");
+    const sheetEl = document.getElementById("form-sheet");
+    sheetEl.classList.add("sheet-hidden");
+    backdrop.classList.remove("opacity-100");
+    backdrop.classList.add("opacity-0");
+    document.body.style.overflow = "";
+    setTimeout(() => {
+      sheetEl.classList.add("hidden");
+      backdrop.classList.add("hidden");
+    }, 380);
+  }
+
+  function saveForm() {
+    const errorEl = document.getElementById("form-error");
+    if (!db) { errorEl.textContent = "Not connected yet — try again in a moment."; return; }
+    const date = document.getElementById("form-date").value;
+    const title = document.getElementById("form-title-input").value.trim();
+    const note = document.getElementById("form-note-input").value.trim();
+    if (!date) { errorEl.textContent = "Pick a date."; return; }
+    if (formBlocks.size === 0) { errorEl.textContent = "Pick when it's happening."; return; }
+    if (!formCategory) { errorEl.textContent = "Pick a category."; return; }
+    if (!title) { errorEl.textContent = "Give it a title."; return; }
+
+    const order = { morning: 0, afternoon: 1, night: 2, anytime: 3 };
+    const block = Array.from(formBlocks).sort((a, b) => order[a] - order[b]);
+    const payload = { date, block, category: formCategory, title, note };
+
+    const saveBtn = document.getElementById("form-save");
+    saveBtn.textContent = "Saving…";
+    const ref = editingId ? db.collection("events").doc(editingId) : db.collection("events").doc();
+    ref.set(payload)
+      .then(() => {
+        buzz(10);
+        saveBtn.textContent = "Save";
+        closeForm();
+        if (state.selectedDate) openSheet(state.selectedDate);
+      })
+      .catch(() => {
+        saveBtn.textContent = "Save";
+        errorEl.textContent = "Couldn't save — check your connection.";
+      });
+  }
+
+  function deleteForm() {
+    if (!editingId || !db) return;
+    db.collection("events").doc(editingId).delete().then(() => {
+      buzz([8, 30, 8]);
+      closeForm();
+      closeSheet();
+    }).catch(() => {
+      document.getElementById("form-error").textContent = "Couldn't delete — check your connection.";
+    });
+  }
+
   // ---------- Wire up static controls ----------
   function setupShellControls() {
     setSoundUI();
+    document.getElementById("fab-add").addEventListener("click", () => {
+      primeAudio();
+      buzz(8);
+      openForm(null, null);
+    });
+    document.getElementById("form-close").addEventListener("click", closeForm);
+    document.getElementById("form-backdrop").addEventListener("click", closeForm);
+    document.getElementById("form-save").addEventListener("click", saveForm);
+    document.getElementById("form-delete").addEventListener("click", deleteForm);
     document.getElementById("sound-toggle").addEventListener("click", () => {
       primeAudio();
       soundOn = !soundOn;
