@@ -510,6 +510,12 @@
     document.getElementById("content").innerHTML = `<div class="glass rounded-2xl p-6 text-center mt-10">${html}</div>`;
   }
 
+  function errText(err) {
+    if (!err) return "";
+    const raw = err.code || err.message || String(err);
+    return `<p class="text-[11px] opacity-40 mt-2 font-mono break-all">${escapeHtml(raw)}</p>`;
+  }
+
   function initFirebase() {
     if (typeof firebase === "undefined" || !window.FIREBASE_CONFIG || window.FIREBASE_CONFIG.apiKey === "PASTE_ME") {
       showContentMessage(`
@@ -525,17 +531,20 @@
       firebase.auth().onAuthStateChanged((user) => {
         if (user) subscribeEvents();
       });
-      firebase.auth().signInAnonymously().catch(() => {
+      firebase.auth().signInAnonymously().catch((err) => {
         showContentMessage(`
           <p class="text-2xl mb-2">🔌</p>
           <p class="font-display text-lg mb-1">Couldn't connect</p>
           <p class="text-sm opacity-60 mb-3">Check that Anonymous sign-in is enabled in Firebase Authentication.</p>
-          <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>`);
+          <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>
+          ${errText(err)}`);
         const retry = document.getElementById("retry-load");
         if (retry) retry.addEventListener("click", () => { db = null; initFirebase(); });
       });
     } catch (e) {
-      showContentMessage(`<p class="text-sm opacity-70">Couldn't set up the connection. Double-check your Firebase config values.</p>`);
+      showContentMessage(`
+        <p class="text-sm opacity-70">Couldn't set up the connection. Double-check your Firebase config values.</p>
+        ${errText(e)}`);
     }
   }
 
@@ -568,7 +577,8 @@
           <p class="text-2xl mb-2">🔌</p>
           <p class="font-display text-lg mb-1">${isPermission ? "Almost — check Firestore rules" : "Lost connection"}</p>
           <p class="text-sm opacity-60 mb-3">${isPermission ? "Firestore is reachable, but the security rules are blocking access. Double-check the rules from the README are published, and that Anonymous sign-in is enabled." : "Check your internet and try again."}</p>
-          <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>`);
+          <button id="retry-load" class="px-4 py-2 rounded-full glass-strong text-sm font-semibold">Try again</button>
+          ${errText(err)}`);
         const retry = document.getElementById("retry-load");
         if (retry) retry.addEventListener("click", subscribeEvents);
       }
