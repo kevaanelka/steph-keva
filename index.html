@@ -177,6 +177,10 @@ input:focus-visible, button:focus-visible {
             <svg id="sound-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
             <svg id="sound-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>
           </button>
+          <button id="notif-toggle" class="tap-fx w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Toggle notifications">
+            <svg id="notif-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <svg id="notif-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 10.24-4.24M18 8c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M2 2l20 20"/></svg>
+          </button>
           <button id="lock-btn" class="tap-fx w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Lock app">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
           </button>
@@ -400,6 +404,98 @@ input:focus-visible, button:focus-visible {
     document.getElementById("sound-icon-off").classList.toggle("hidden", soundOn);
   }
 
+  // ---------- Notifications (lightweight: fires when the app is opened, not a proactive server push) ----------
+  const NOTIF_KEY = "us_schedule_notify";
+  const NOTIF_LAST_KEY = "us_schedule_last_notified";
+  let notifyOn = false;
+  try { notifyOn = localStorage.getItem(NOTIF_KEY) === "on"; } catch (e) { /* ignore */ }
+
+  function notifSupported() {
+    return "Notification" in window;
+  }
+
+  function setNotifUI() {
+    const btn = document.getElementById("notif-toggle");
+    if (!notifSupported()) { btn.classList.add("hidden"); return; }
+    document.getElementById("notif-icon-on").classList.toggle("hidden", !notifyOn);
+    document.getElementById("notif-icon-off").classList.toggle("hidden", notifyOn);
+  }
+
+  function todaysDigestText() {
+    const now = new Date();
+    const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEvents = state.events.filter((e) => e.date === todayStr);
+    if (todayEvents.length === 0) return null;
+    const order = { morning: 0, afternoon: 1, night: 2, anytime: 3 };
+    const sorted = [...todayEvents].sort((a, b) => order[a.block[0]] - order[b.block[0]]);
+    const names = sorted.slice(0, 3).map((e) => `${(CATEGORIES[e.category] || CATEGORIES.other).emoji} ${e.title}`).join(", ");
+    const extra = sorted.length > 3 ? ` +${sorted.length - 3} more` : "";
+    return { todayStr, text: names + extra };
+  }
+
+  // Returns true if it actually fired a "today's plans" notification.
+  function maybeNotifyToday() {
+    if (!notifyOn || !notifSupported() || Notification.permission !== "granted" || !state.ready) return false;
+    const digest = todaysDigestText();
+    if (!digest) return false;
+
+    let lastShown = "";
+    try { lastShown = localStorage.getItem(NOTIF_LAST_KEY) || ""; } catch (e) { /* ignore */ }
+    if (lastShown === digest.todayStr) return false;
+
+    try {
+      new Notification("Today's plans 💜", {
+        body: digest.text,
+        icon: "./icons/icon-192.png",
+        badge: "./icons/icon-192.png",
+        tag: "us-schedule-today",
+      });
+      try { localStorage.setItem(NOTIF_LAST_KEY, digest.todayStr); } catch (e) { /* ignore */ }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function toggleNotifications() {
+    if (!notifSupported()) return;
+
+    if (notifyOn) {
+      notifyOn = false;
+      try { localStorage.setItem(NOTIF_KEY, "off"); } catch (e) { /* ignore */ }
+      setNotifUI();
+      buzz(6);
+      return;
+    }
+
+    if (Notification.permission === "denied") {
+      showToast("Notifications are blocked — enable them for this app in your phone/browser settings");
+      return;
+    }
+
+    Notification.requestPermission().then((perm) => {
+      if (perm === "granted") {
+        notifyOn = true;
+        try { localStorage.setItem(NOTIF_KEY, "on"); } catch (e) { /* ignore */ }
+        setNotifUI();
+        buzz(8);
+        const fired = maybeNotifyToday();
+        if (!fired) {
+          try {
+            new Notification("Notifications on 💜", {
+              body: "You'll get a nudge on days you've got plans.",
+              icon: "./icons/icon-192.png",
+            });
+          } catch (e) { /* ignore */ }
+        }
+      } else {
+        notifyOn = false;
+        try { localStorage.setItem(NOTIF_KEY, "off"); } catch (e) { /* ignore */ }
+        setNotifUI();
+      }
+    });
+  }
+
   // ---------- Tap ripple ----------
   function addRipple(el, x, y) {
     const rect = el.getBoundingClientRect();
@@ -616,6 +712,7 @@ input:focus-visible, button:focus-visible {
           renderHeader();
           renderChips();
           setActiveTab("calendar");
+          maybeNotifyToday();
         } else {
           renderChips();
           renderView();
@@ -1165,6 +1262,9 @@ input:focus-visible, button:focus-visible {
     });
     setSoundUI();
 
+    document.getElementById("notif-toggle").addEventListener("click", toggleNotifications);
+    setNotifUI();
+
     document.getElementById("lock-btn").addEventListener("click", () => {
       buzz([8, 30, 8]);
       try { localStorage.removeItem(AUTH_KEY); } catch(e){}
@@ -1224,6 +1324,7 @@ input:focus-visible, button:focus-visible {
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible" && state.ready) {
         renderTodayBanner();
+        maybeNotifyToday();
       }
     });
   });
