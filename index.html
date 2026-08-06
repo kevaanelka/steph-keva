@@ -171,6 +171,7 @@ input:focus-visible, button:focus-visible {
         <div class="flex items-center gap-2.5">
           <img src="./icons/icon-192.png" alt="" class="w-9 h-9 rounded-full object-cover" style="border:1.5px solid rgba(255,255,255,0.25);" />
           <h1 class="font-display text-2xl">Our Schedule</h1>
+          <button id="whoami-badge" class="tap-fx w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ml-0.5" style="background:rgba(124,92,252,0.25); color:#c4b5fd;" aria-label="Who's using this">?</button>
         </div>
         <div class="flex items-center gap-2">
           <button id="sound-toggle" class="tap-fx w-9 h-9 rounded-full glass flex items-center justify-center opacity-80" aria-label="Toggle sound">
@@ -258,11 +259,17 @@ input:focus-visible, button:focus-visible {
         <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">When</label>
         <div id="form-block-chips" class="flex flex-wrap gap-2 mb-4"></div>
 
+        <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Specific time (optional)</label>
+        <input id="form-time-input" type="time" class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-4" style="color-scheme: dark;" />
+
         <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Category</label>
         <div id="form-category-chips" class="flex flex-wrap gap-2 mb-4"></div>
 
         <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">What's happening</label>
         <input id="form-title-input" type="text" maxlength="80" placeholder="e.g. Dinner at..." class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-4" />
+
+        <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Location (optional)</label>
+        <input id="form-location-input" type="text" maxlength="60" placeholder="Where?" class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-4" />
 
         <label class="block text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Note (optional)</label>
         <input id="form-note-input" type="text" maxlength="140" placeholder="Add a detail..." class="w-full glass rounded-2xl px-4 py-3 text-[15px] mb-2" />
@@ -271,6 +278,23 @@ input:focus-visible, button:focus-visible {
 
         <button id="form-save" class="tap-fx w-full py-3.5 rounded-2xl text-sm font-bold mt-2" style="background:linear-gradient(135deg, #7C5CFC, #FF6F91); color:white;">Save</button>
         <button id="form-delete" class="hidden tap-fx w-full py-3 rounded-2xl text-sm font-semibold mt-2.5" style="background:rgba(255,111,145,0.12); color:#FF6F91;">Delete plan</button>
+      </div>
+    </div>
+
+    <div id="whoami-backdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 opacity-0 sheet-backdrop"></div>
+    <div id="whoami-sheet" class="hidden fixed inset-x-0 bottom-0 z-40 sheet sheet-hidden">
+      <div class="glass-strong rounded-t-[28px] px-5 pt-4" style="padding-bottom:calc(env(safe-area-inset-bottom) + 28px);">
+        <div class="w-10 h-1.5 rounded-full bg-white/20 mx-auto mb-4"></div>
+        <p class="font-display text-xl mb-1 text-center">Who's this?</p>
+        <p class="text-xs opacity-50 mb-5 text-center">So plans show who added them</p>
+        <div class="flex flex-col gap-2.5">
+          <button data-who="Keva" class="tap-fx w-full py-3.5 rounded-2xl text-sm font-semibold glass">Keva</button>
+          <button data-who="Steph" class="tap-fx w-full py-3.5 rounded-2xl text-sm font-semibold glass">Steph</button>
+        </div>
+        <div class="flex gap-2 mt-2.5">
+          <input id="whoami-custom" type="text" maxlength="20" placeholder="Someone else..." class="flex-1 glass rounded-2xl px-4 py-3 text-[14px]" />
+          <button id="whoami-custom-confirm" class="tap-fx w-12 h-12 rounded-2xl flex items-center justify-center glass shrink-0" aria-label="Confirm name">✓</button>
+        </div>
       </div>
     </div>
 
@@ -496,6 +520,61 @@ input:focus-visible, button:focus-visible {
     });
   }
 
+  function sendTestNotification() {
+    if (!notifSupported()) { showToast("Notifications aren't supported in this browser"); return; }
+    if (Notification.permission !== "granted") { showToast("Turn on notifications first — tap the bell"); return; }
+    buzz([10, 30, 10]);
+    try {
+      new Notification("Test notification 🔔", {
+        body: "If you can see this, notifications are working!",
+        icon: "./icons/icon-192.png",
+      });
+    } catch (e) {
+      showToast("Couldn't send a test notification");
+    }
+  }
+
+  // ---------- Who's using this device (attributes plans to a person, no real auth) ----------
+  const WHOAMI_KEY = "us_schedule_whoami";
+  let whoAmI = "";
+  try { whoAmI = localStorage.getItem(WHOAMI_KEY) || ""; } catch (e) { /* ignore */ }
+
+  function setWhoamiUI() {
+    document.getElementById("whoami-badge").textContent = whoAmI ? whoAmI.charAt(0).toUpperCase() : "?";
+  }
+
+  function openWhoamiSheet() {
+    const backdrop = document.getElementById("whoami-backdrop");
+    const sheetEl = document.getElementById("whoami-sheet");
+    backdrop.classList.remove("hidden");
+    sheetEl.classList.remove("hidden");
+    requestAnimationFrame(() => {
+      backdrop.style.opacity = "1";
+      sheetEl.classList.remove("sheet-hidden");
+    });
+  }
+
+  function closeWhoamiSheet() {
+    const backdrop = document.getElementById("whoami-backdrop");
+    const sheetEl = document.getElementById("whoami-sheet");
+    backdrop.style.opacity = "0";
+    sheetEl.classList.add("sheet-hidden");
+    setTimeout(() => {
+      backdrop.classList.add("hidden");
+      sheetEl.classList.add("hidden");
+    }, 400);
+  }
+
+  function setWhoAmI(name) {
+    const clean = (name || "").trim().slice(0, 20);
+    if (!clean) return;
+    whoAmI = clean;
+    try { localStorage.setItem(WHOAMI_KEY, whoAmI); } catch (e) { /* ignore */ }
+    setWhoamiUI();
+    buzz(8);
+    closeWhoamiSheet();
+  }
+
   // ---------- Tap ripple ----------
   function addRipple(el, x, y) {
     const rect = el.getBoundingClientRect();
@@ -564,6 +643,16 @@ input:focus-visible, button:focus-visible {
   function pad2(n) { return String(n).padStart(2, "0"); }
   
   function toDateStr(y, mIdx, d) { return `${y}-${pad2(mIdx + 1)}-${pad2(d)}`; }
+
+  function formatTime12h(t) {
+    if (!t) return "";
+    const parts = t.split(":");
+    const h = parseInt(parts[0], 10);
+    const m = parts[1];
+    const period = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${m} ${period}`;
+  }
 
   function eventsForDate(dateStr) { return state.events.filter((e) => e.date === dateStr); }
   
@@ -704,7 +793,10 @@ input:focus-visible, button:focus-visible {
         snapshot.forEach((doc) => events.push(Object.assign({ id: doc.id }, doc.data())));
         state.events = events;
 
-        if (events.length === 0 && !state.ready) { seedInitialEvents(); }
+        if (events.length === 0 && !state.ready) {
+          seedInitialEvents();
+          return; // wait for the snapshot after seeding lands before treating the app as ready
+        }
 
         if (!state.ready) {
           state.ready = true;
@@ -713,6 +805,7 @@ input:focus-visible, button:focus-visible {
           renderChips();
           setActiveTab("calendar");
           maybeNotifyToday();
+          if (!whoAmI) setTimeout(openWhoamiSheet, 500);
         } else {
           renderChips();
           renderView();
@@ -992,12 +1085,21 @@ input:focus-visible, button:focus-visible {
       evs.forEach((ev) => {
         const cat = CATEGORIES[ev.category] || CATEGORIES.other;
         const blockLabel = ev.block.map((b) => b.charAt(0).toUpperCase() + b.slice(1)).join(" & ");
+        const timeLabel = ev.time ? ` · ${formatTime12h(ev.time)}` : "";
+        let attribution = "";
+        if (ev.createdBy && ev.updatedBy && ev.updatedBy !== ev.createdBy) {
+          attribution = `${escapeHtml(ev.createdBy)} · edited by ${escapeHtml(ev.updatedBy)}`;
+        } else if (ev.createdBy || ev.updatedBy) {
+          attribution = `Added by ${escapeHtml(ev.createdBy || ev.updatedBy)}`;
+        }
         html += `
           <div data-id="${ev.id}" class="tap-fx glass rounded-2xl p-4 flex items-center justify-between gap-4 border-l-4" style="border-left-color:${cat.color}">
             <div class="flex-1 min-w-0">
-              <span class="text-[10px] font-bold uppercase tracking-wider opacity-40 block mb-0.5">${blockLabel}</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider opacity-40 block mb-0.5">${blockLabel}${timeLabel}</span>
               <p class="text-[15px] font-semibold text-white/95 tracking-tight truncate">${escapeHtml(ev.title)}</p>
+              ${ev.location ? `<p class="text-xs opacity-45 mt-0.5 truncate">📍 ${escapeHtml(ev.location)}</p>` : ""}
               ${ev.note ? `<p class="text-xs opacity-45 mt-0.5 truncate">${escapeHtml(ev.note)}</p>` : ""}
+              ${attribution ? `<p class="text-[10px] opacity-35 mt-1">${attribution}</p>` : ""}
             </div>
             <div class="text-xl shrink-0 bg-white/5 w-9 h-9 rounded-xl flex items-center justify-center">${cat.emoji}</div>
           </div>
@@ -1057,6 +1159,8 @@ input:focus-visible, button:focus-visible {
       document.getElementById("form-date").value = ev.date;
       document.getElementById("form-title-input").value = ev.title;
       document.getElementById("form-note-input").value = ev.note || "";
+      document.getElementById("form-time-input").value = ev.time || "";
+      document.getElementById("form-location-input").value = ev.location || "";
       ev.block.forEach((b) => formState.blocks.add(b));
       formState.category = ev.category;
       delBtn.classList.remove("hidden");
@@ -1065,6 +1169,8 @@ input:focus-visible, button:focus-visible {
       document.getElementById("form-date").value = fallbackDate || new Date().toISOString().split("T")[0];
       document.getElementById("form-title-input").value = "";
       document.getElementById("form-note-input").value = "";
+      document.getElementById("form-time-input").value = "";
+      document.getElementById("form-location-input").value = "";
       formState.blocks.add("anytime");
       formState.category = "date";
       delBtn.classList.add("hidden");
@@ -1156,6 +1262,8 @@ input:focus-visible, button:focus-visible {
     const date = document.getElementById("form-date").value;
     const title = document.getElementById("form-title-input").value.trim();
     const note = document.getElementById("form-note-input").value.trim();
+    const time = document.getElementById("form-time-input").value;
+    const location = document.getElementById("form-location-input").value.trim();
     const errEl = document.getElementById("form-error");
 
     if (!date) { errEl.textContent = "Please pick a date"; return; }
@@ -1165,9 +1273,16 @@ input:focus-visible, button:focus-visible {
       date: date,
       title: title,
       note: note,
+      time: time,
+      location: location,
       category: formState.category,
       block: Array.from(formState.blocks),
+      updatedBy: whoAmI || "",
+      updatedAt: Date.now(),
     };
+    if (!currentFormEvent) {
+      payload.createdBy = whoAmI || "";
+    }
 
     if (formState.category === "date") {
       playDateChime(); 
@@ -1262,8 +1377,38 @@ input:focus-visible, button:focus-visible {
     });
     setSoundUI();
 
-    document.getElementById("notif-toggle").addEventListener("click", toggleNotifications);
+    (function setupNotifButton() {
+      const btn = document.getElementById("notif-toggle");
+      let pressTimer = null;
+      let longPressed = false;
+      btn.addEventListener("touchstart", () => {
+        longPressed = false;
+        pressTimer = setTimeout(() => {
+          longPressed = true;
+          sendTestNotification();
+        }, 600);
+      }, { passive: true });
+      btn.addEventListener("touchend", () => { clearTimeout(pressTimer); }, { passive: true });
+      btn.addEventListener("touchmove", () => { clearTimeout(pressTimer); }, { passive: true });
+      btn.addEventListener("click", () => {
+        if (longPressed) { longPressed = false; return; }
+        toggleNotifications();
+      });
+    })();
     setNotifUI();
+
+    document.getElementById("whoami-badge").addEventListener("click", openWhoamiSheet);
+    document.getElementById("whoami-backdrop").addEventListener("click", closeWhoamiSheet);
+    document.querySelectorAll("[data-who]").forEach((btn) => {
+      btn.addEventListener("click", () => setWhoAmI(btn.getAttribute("data-who")));
+    });
+    document.getElementById("whoami-custom-confirm").addEventListener("click", () => {
+      setWhoAmI(document.getElementById("whoami-custom").value);
+    });
+    document.getElementById("whoami-custom").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") setWhoAmI(e.target.value);
+    });
+    setWhoamiUI();
 
     document.getElementById("lock-btn").addEventListener("click", () => {
       buzz([8, 30, 8]);
