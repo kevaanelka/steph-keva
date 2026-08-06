@@ -104,7 +104,7 @@ registers your device with the new system automatically, on top of the
 existing lite version.
 
 **What it does:** a scheduled Cloud Function (`functions/index.js`) runs
-every day at 07:00 Asia/Jakarta time, checks Firestore for anything on that
+every day at 10:00 Asia/Jakarta time, checks Firestore for anything on that
 day, and pushes a notification to every registered device. Change the time
 by editing the `schedule` string at the top of that file (cron format) and
 redeploying with the same `firebase deploy --only functions` command.

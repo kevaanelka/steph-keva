@@ -5,7 +5,7 @@
 //   firebase deploy --only functions
 //
 // Change the time it fires by editing the `schedule` cron string below
-// (minute hour * * *, in the `timeZone` given) — currently 07:00 Asia/Jakarta.
+// (minute hour * * *, in the `timeZone` given) — currently 10:00 Asia/Jakarta.
 
 const { onSchedule } = require("firebase-functions/scheduler");
 const { initializeApp } = require("firebase-admin/app");
@@ -25,7 +25,7 @@ const CATEGORY_EMOJI = {
 const BLOCK_ORDER = { morning: 0, afternoon: 1, night: 2, anytime: 3 };
 
 exports.dailyDigest = onSchedule(
-  { schedule: "0 7 * * *", timeZone: "Asia/Jakarta" },
+  { schedule: "0 10 * * *", timeZone: "Asia/Jakarta" },
   async () => {
     const db = getFirestore();
 
