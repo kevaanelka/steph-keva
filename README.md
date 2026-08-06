@@ -62,6 +62,56 @@ Until `firebase-config.js` is filled in, the app shows a friendly
 from scratch, or open any day and tap **Add to this day** / the pencil icon
 on an existing plan to edit it. There's a **Delete** button in edit mode too.
 
+## Push notifications (proactive, even with the app closed)
+
+The app already has a free "notify when you open it" feature (the 🔔 bell).
+This section is for the upgraded version: a real push that arrives every
+morning if there's something on the schedule, whether or not the app is
+open. It needs a small one-time setup — about 15–20 minutes, and it's still
+free at this scale, but Google requires a card on file for this tier.
+
+**1. Upgrade to the Blaze plan**
+Firebase Console → your project → bottom-left "Spark plan" → **Upgrade** →
+**Blaze (Pay as you go)**. You won't be charged unless usage goes far beyond
+what two people checking a shared calendar would ever generate.
+
+**2. Generate a Web Push certificate (VAPID key)**
+Firebase Console → ⚙️ **Project settings** → **Cloud Messaging** tab →
+**Web configuration** → **Web Push certificates** → **Generate key pair**.
+Copy the key shown, paste it into `firebase-config.js` as
+`FIREBASE_VAPID_KEY`, replacing `"PASTE_ME"`.
+
+**3. Install the tools (one-time, on your computer)**
+```bash
+# Node.js 20+ if you don't have it: https://nodejs.org
+npm install -g firebase-tools
+firebase login
+```
+
+**4. Deploy the function**
+From inside this project folder (it already has `firebase.json`,
+`.firebaserc`, and the `functions/` folder with the code):
+```bash
+cd functions && npm install && cd ..
+firebase deploy --only functions
+```
+That's it — no interactive setup needed, the config files are already here.
+
+**5. Turn it on in the app**
+Commit + push your updated `firebase-config.js` (with the real VAPID key),
+then in the app tap the 🔔 bell to grant notification permission — this
+registers your device with the new system automatically, on top of the
+existing lite version.
+
+**What it does:** a scheduled Cloud Function (`functions/index.js`) runs
+every day at 07:00 Asia/Jakarta time, checks Firestore for anything on that
+day, and pushes a notification to every registered device. Change the time
+by editing the `schedule` string at the top of that file (cron format) and
+redeploying with the same `firebase deploy --only functions` command.
+
+**Checking it's working:** `firebase functions:log` (run from this folder)
+shows each run, including "No plans for [date] — skipping" on quiet days.
+
 ## What's interactive now
 
 - **Passcode screen**: your photo as a blurred lock-screen background with a

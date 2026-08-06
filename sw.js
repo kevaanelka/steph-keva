@@ -1,6 +1,6 @@
 // Bump this version whenever you change index.html structure so returning
 // visitors get the fresh files instead of a stale cache.
-const CACHE_NAME = "us-schedule-v4";
+const CACHE_NAME = "us-schedule-v5";
 
 const APP_SHELL = [
   "./",
@@ -59,3 +59,29 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });
+
+// ---------- Push notifications (Firebase Cloud Messaging background handler) ----------
+// Wrapped defensively: if this fails for any reason (config not set up yet,
+// browser doesn't support it, etc.) the caching logic above must keep working.
+try {
+  importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+  importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
+  importScripts("./firebase-config.js");
+
+  if (self.FIREBASE_CONFIG && self.FIREBASE_CONFIG.apiKey !== "PASTE_ME") {
+    firebase.initializeApp(self.FIREBASE_CONFIG);
+    const messaging = firebase.messaging();
+    messaging.onBackgroundMessage((payload) => {
+      const title = (payload.notification && payload.notification.title) || "Our Schedule";
+      const body = (payload.notification && payload.notification.body) || "";
+      self.registration.showNotification(title, {
+        body,
+        icon: "./icons/icon-192.png",
+        badge: "./icons/icon-192.png",
+        tag: "us-schedule-push",
+      });
+    });
+  }
+} catch (e) {
+  // Push setup failed (e.g. config not filled in yet) — caching above still works fine.
+}

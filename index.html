@@ -19,6 +19,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script src="./firebase-config.js"></script>
 <style>
 html, body { height: 100%; overscroll-behavior: none; }
@@ -489,6 +490,7 @@ input:focus-visible, button:focus-visible {
       try { localStorage.setItem(NOTIF_KEY, "off"); } catch (e) { /* ignore */ }
       setNotifUI();
       buzz(6);
+      unregisterPushToken();
       return;
     }
 
@@ -503,6 +505,7 @@ input:focus-visible, button:focus-visible {
         try { localStorage.setItem(NOTIF_KEY, "on"); } catch (e) { /* ignore */ }
         setNotifUI();
         buzz(8);
+        registerPushToken();
         const fired = maybeNotifyToday();
         if (!fired) {
           try {
@@ -517,6 +520,58 @@ input:focus-visible, button:focus-visible {
         try { localStorage.setItem(NOTIF_KEY, "off"); } catch (e) { /* ignore */ }
         setNotifUI();
       }
+    });
+  }
+
+  // ---------- Real push notifications (Firebase Cloud Messaging) ----------
+  function pushSupported() {
+    return !!(window.firebase && firebase.messaging && typeof firebase.messaging.isSupported === "function");
+  }
+
+  function vapidReady() {
+    return !!(window.FIREBASE_VAPID_KEY && window.FIREBASE_VAPID_KEY !== "PASTE_ME");
+  }
+
+  function registerPushToken() {
+    if (!db || !vapidReady() || !pushSupported()) return;
+    firebase.messaging.isSupported().then((supported) => {
+      if (!supported) return;
+      firebase.messaging()
+        .getToken({ vapidKey: window.FIREBASE_VAPID_KEY, serviceWorkerRegistration: swRegistration || undefined })
+        .then((token) => {
+          if (!token) return;
+          db.collection("pushTokens").doc(token).set({
+            token,
+            whoami: whoAmI || "",
+            updatedAt: Date.now(),
+          }).catch(() => { /* ignore */ });
+        })
+        .catch(() => { /* getToken can fail if VAPID key is wrong or permission isn't granted */ });
+    });
+  }
+
+  function unregisterPushToken() {
+    if (!db || !vapidReady() || !pushSupported()) return;
+    firebase.messaging.isSupported().then((supported) => {
+      if (!supported) return;
+      firebase.messaging()
+        .getToken({ vapidKey: window.FIREBASE_VAPID_KEY, serviceWorkerRegistration: swRegistration || undefined })
+        .then((token) => { if (token) db.collection("pushTokens").doc(token).delete().catch(() => {}); })
+        .catch(() => { /* ignore */ });
+    });
+  }
+
+  function setupForegroundMessaging() {
+    if (!pushSupported()) return;
+    firebase.messaging.isSupported().then((supported) => {
+      if (!supported) return;
+      try {
+        firebase.messaging().onMessage((payload) => {
+          const title = (payload.notification && payload.notification.title) || "Our Schedule";
+          const body = (payload.notification && payload.notification.body) || "";
+          try { new Notification(title, { body, icon: "./icons/icon-192.png" }); } catch (e) { /* ignore */ }
+        });
+      } catch (e) { /* ignore */ }
     });
   }
 
@@ -806,6 +861,7 @@ input:focus-visible, button:focus-visible {
           setActiveTab("calendar");
           maybeNotifyToday();
           if (!whoAmI) setTimeout(openWhoamiSheet, 500);
+          if (notifyOn && notifSupported() && Notification.permission === "granted") registerPushToken();
         } else {
           renderChips();
           renderView();
@@ -1474,8 +1530,12 @@ input:focus-visible, button:focus-visible {
     });
   });
 
+  let swRegistration = null;
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    navigator.serviceWorker.register("./sw.js").then((reg) => {
+      swRegistration = reg;
+      setupForegroundMessaging();
+    }).catch(() => {});
   }
 })();
 </script>

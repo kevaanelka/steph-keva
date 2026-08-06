@@ -7,8 +7,12 @@
 //
 // Until this is filled in, the app will show a friendly "not configured yet"
 // message instead of trying (and failing) to connect.
+//
+// Uses `self` instead of `window` on purpose — this file is loaded both by
+// the page and by the service worker (for background push), and `self`
+// works in both places while `window` only exists on the page.
 
-window.FIREBASE_CONFIG = {
+self.FIREBASE_CONFIG = {
   apiKey: "AIzaSyB3QQTxRBBHYItC4rhEGSqQmIVeiYP9dBo",
   authDomain: "stephanie-dish.firebaseapp.com",
   projectId: "stephanie-dish",
@@ -16,3 +20,9 @@ window.FIREBASE_CONFIG = {
   messagingSenderId: "269606122063",
   appId: "1:269606122063:web:a3fe04a7d74bf2ce94703a",
 };
+
+// For push notifications: Firebase Console → Project settings → Cloud Messaging
+// tab → "Web configuration" → Web Push certificates → Generate key pair.
+// Paste the "Key pair" value here (it's the VAPID public key).
+self.FIREBASE_VAPID_KEY = "PASTE_ME";
+
