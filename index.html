@@ -533,20 +533,28 @@ input:focus-visible, button:focus-visible {
   }
 
   function registerPushToken() {
-    if (!db || !vapidReady() || !pushSupported()) return;
+    if (!db) { showToast("Not connected yet — try again in a moment"); return; }
+    if (!vapidReady()) { showToast("Push key isn't set up yet (firebase-config.js)"); return; }
+    if (!pushSupported()) { showToast("This browser doesn't support push messaging"); return; }
     firebase.messaging.isSupported().then((supported) => {
-      if (!supported) return;
+      if (!supported) { showToast("Push isn't supported in this browser/context"); return; }
       firebase.messaging()
         .getToken({ vapidKey: window.FIREBASE_VAPID_KEY, serviceWorkerRegistration: swRegistration || undefined })
         .then((token) => {
-          if (!token) return;
+          if (!token) { showToast("No token returned — try re-granting notification permission"); return; }
           db.collection("pushTokens").doc(token).set({
             token,
             whoami: whoAmI || "",
             updatedAt: Date.now(),
-          }).catch(() => { /* ignore */ });
+          }).then(() => {
+            showToast("✨ This device is registered for push!");
+          }).catch((err) => {
+            showToast("Couldn't save device: " + (err && err.message ? err.message : "unknown error"));
+          });
         })
-        .catch(() => { /* getToken can fail if VAPID key is wrong or permission isn't granted */ });
+        .catch((err) => {
+          showToast("Couldn't get push token: " + (err && err.message ? err.message : "unknown error"));
+        });
     });
   }
 
