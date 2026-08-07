@@ -7,7 +7,7 @@
 // Change the time it fires by editing the `schedule` cron string below
 // (minute hour * * *, in the `timeZone` given) — currently 10:00 Asia/Jakarta.
 
-const { onSchedule } = require("firebase-functions/scheduler");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
