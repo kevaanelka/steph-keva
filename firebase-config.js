@@ -24,5 +24,5 @@ self.FIREBASE_CONFIG = {
 // For push notifications: Firebase Console → Project settings → Cloud Messaging
 // tab → "Web configuration" → Web Push certificates → Generate key pair.
 // Paste the "Key pair" value here (it's the VAPID public key).
-self.FIREBASE_VAPID_KEY = "PASTE_ME";
+self.FIREBASE_VAPID_KEY = "BD3w43TtVpRf9B7J-BRzBJWr6NU2LeeyF0NaEXCYTdAI1jL6qNdQo6KyXg1fPalqip2kTH0uSW1eSw8o9pnvdeQ";
 
