@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<style>[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Fish Dinner Invitation</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap">
+<style>
+/* Layout: one tall pond scene. Intro (animals + bottle) -> tap -> paper letter with details, countdown, RSVP. Single committed look, light pond. */
+:root{
+  --water-top:#bfeaf2; --water-mid:#8fd3e3; --water-deep:#4fa9c4;
+  --paper:#fffaf0; --ink:#23424d; --ink-soft:#4f6f7a;
+  --fish:#ff8a5c; --fish-dark:#f2663a; --beaver:#a8704a; --beaver-dark:#7d4e30;
+  --pink:#ff6f91; --butter:#ffd98a;
+  --font-display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --font-body:"Nunito",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--water-mid);
+  background-image:linear-gradient(180deg,var(--water-top) 0%,var(--water-mid) 45%,var(--water-deep) 100%);
+  background-attachment:fixed;
+  color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.5;
+  min-height:100vh;overflow-x:hidden;
+}
+.wrap{
+  max-width:460px;margin:0 auto;position:relative;z-index:2;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));
+  padding-block:28px 56px;
+}
+#bubbles{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.bub{position:absolute;bottom:-40px;border-radius:50%;border:2px solid rgba(255,255,255,.75);background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.7),rgba(255,255,255,.08));animation:rise linear forwards}
+@keyframes rise{to{transform:translate(var(--dx,0),-115vh)}}
+
+h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
+.eyebrow{font-family:var(--font-display);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#1f5f73;text-align:center}
+.hero h1{font-size:clamp(34px,10vw,44px);line-height:1.08;text-align:center;color:#13475a;margin-top:8px}
+.hero p.sub{text-align:center;margin:10px auto 0;max-width:30ch;color:#1f5266;font-weight:600}
+
+.pair{display:flex;justify-content:center;align-items:flex-end;gap:6px;margin-top:22px}
+.pair button{background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:20px}
+.pair button:focus-visible,.btn:focus-visible,.bottle:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.pair svg{display:block;overflow:visible}
+#fish{width:46%;animation:swim 4s ease-in-out infinite}
+#beaver{width:42%;animation:bob 3.4s ease-in-out infinite}
+@keyframes swim{50%{transform:translateY(-9px) rotate(-2deg)}}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.wiggle{animation:wig .6s ease !important}
+@keyframes wig{20%{transform:rotate(-8deg) scale(1.06)}50%{transform:rotate(8deg) scale(1.06)}80%{transform:rotate(-4deg)}}
+.bubble-say{position:absolute;pointer-events:none;font-family:var(--font-display);font-weight:600;font-size:14px;background:#fff;color:var(--ink);padding:5px 11px;border-radius:14px;box-shadow:0 4px 12px rgba(19,71,90,.2);animation:sayup 1.3s ease forwards;white-space:nowrap}
+@keyframes sayup{0%{opacity:0;transform:translate(-50%,6px)}15%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-22px)}}
+
+.bottle-zone{display:flex;flex-direction:column;align-items:center;margin-top:30px;gap:8px}
+.bottle{background:none;border:0;cursor:pointer;padding:6px;-webkit-tap-highlight-color:transparent;animation:float 3s ease-in-out infinite;border-radius:20px}
+@keyframes float{50%{transform:translateY(-8px) rotate(4deg)}}
+.hint{text-align:center;font-family:var(--font-display);font-weight:600;color:#13475a;font-size:17px}
+.hint small{display:block;text-align:center;font-family:var(--font-body);font-weight:600;font-size:13px;color:#2b6277}
+
+#letter{margin-top:26px}
+.paper{
+  background:var(--paper);border-radius:6px 22px 6px 22px;padding:28px 22px 26px;position:relative;
+  box-shadow:0 18px 40px rgba(19,71,90,.28),0 2px 0 rgba(255,255,255,.7) inset;
+  animation:unroll .7s cubic-bezier(.2,.9,.3,1.2) both;transform-origin:top center;
+}
+@keyframes unroll{from{opacity:0;transform:scaleY(.2) translateY(-20px)}to{opacity:1;transform:none}}
+.paper::before{content:"";position:absolute;inset:8px;border:2px dashed rgba(255,138,92,.45);border-radius:4px 16px 4px 16px;pointer-events:none}
+.paper h2{font-size:30px;color:var(--fish-dark);line-height:1.1}
+.paper p{margin:12px 0 0}
+.lead{font-size:17px}
+.facts{display:grid;gap:10px;margin-top:20px}
+.fact{display:flex;gap:12px;align-items:center;background:#fff1da;border-radius:14px;padding:11px 14px}
+.fact .k{font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--beaver-dark);min-width:54px}
+.fact .v{font-weight:700;min-width:0}
+.fact .v small{display:block;font-weight:600;color:var(--ink-soft);font-size:13px}
+.fact a{color:var(--ink);text-decoration-color:var(--fish);text-underline-offset:3px;text-decoration-thickness:2px}
+
+.count{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:20px;text-align:center}
+.count div{background:var(--ink);color:#fff;border-radius:14px;padding:9px 0 7px}
+.count b{display:block;font-family:var(--font-display);font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.count span{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+.countlabel{margin-top:20px;text-align:center;font-family:var(--font-display);font-weight:600;color:var(--beaver-dark)}
+
+.rsvp{position:relative;height:150px;margin-top:18px}
+.btn{font-family:var(--font-display);font-weight:600;border:0;cursor:pointer;border-radius:999px;font-size:18px;padding:13px 22px;-webkit-tap-highlight-color:transparent;transition:transform .15s,background .2s}
+.btn:active{transform:scale(.95)}
+#yes{position:absolute;left:50%;top:6px;translate:-50% 0;background:var(--fish);color:#fff;box-shadow:0 6px 0 var(--fish-dark);white-space:nowrap;transition:transform .25s}
+#maybe{position:absolute;left:50%;top:92px;translate:-50% 0;background:#e7eef0;color:var(--ink-soft);font-size:15px;padding:9px 18px;box-shadow:0 4px 0 #c5d3d7;white-space:nowrap;touch-action:manipulation;transition:left .22s cubic-bezier(.3,1.4,.5,1),top .22s cubic-bezier(.3,1.4,.5,1)}
+.sig{margin-top:6px;font-family:var(--font-display);font-weight:500;font-size:20px;color:var(--beaver-dark)}
+
+#done{margin-top:26px}
+#done .paper{text-align:center}
+#done h2{font-size:32px}
+.pairsmall{display:flex;justify-content:center;align-items:flex-end;gap:0;margin:6px 0 4px;position:relative}
+.pairsmall svg{width:108px;overflow:visible}
+.pairsmall .heart{position:absolute;top:-4px;left:50%;translate:-50% 0;font-size:34px;animation:beat 1s ease-in-out infinite}
+@keyframes beat{50%{transform:scale(1.25)}}
+.actions{display:grid;gap:10px;margin-top:18px}
+.actions a{display:block;text-decoration:none;text-align:center}
+.btn.ghost{background:#fff1da;color:var(--ink);box-shadow:0 4px 0 #f0d9ae}
+.btn.solid{background:var(--ink);color:#fff;box-shadow:0 5px 0 #0f2a33}
+.tiny{font-size:13px;color:var(--ink-soft);margin-top:14px}
+
+.float-emoji{position:fixed;z-index:50;pointer-events:none;font-size:28px;animation:fly 2.4s ease-out forwards}
+@keyframes fly{0%{opacity:1;transform:translate(0,0) scale(.6)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(1.1)}}
+.shake{animation:shk .4s}
+@keyframes shk{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){
+  #fish,#beaver,.bottle,.heart{animation:none}
+  .paper{animation:none}
+  .bub{display:none}
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="fish-sym" viewBox="0 0 170 130">
+      <path d="M122 66 L162 30 Q152 66 162 102 Z" fill="#f2663a"/>
+      <path d="M62 28 Q78 2 102 24 Q86 30 62 28Z" fill="#f2663a"/>
+      <ellipse cx="74" cy="66" rx="58" ry="42" fill="#ff8a5c"/>
+      <ellipse cx="68" cy="84" rx="38" ry="20" fill="#ffd0b3"/>
+      <path d="M96 40 Q106 66 96 92" stroke="#f2663a" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M112 46 Q120 66 112 86" stroke="#f2663a" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M84 78 Q104 78 98 98 Q80 96 84 78Z" fill="#f2663a"/>
+      <circle cx="50" cy="56" r="12" fill="#fff"/><circle cx="53" cy="57" r="7" fill="#23424d"/><circle cx="55" cy="54" r="2.4" fill="#fff"/>
+      <ellipse cx="34" cy="76" rx="8" ry="5" fill="#ff6f91" opacity=".55"/>
+      <path d="M22 70 Q30 82 42 74" stroke="#23424d" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    </symbol>
+    <symbol id="beaver-sym" viewBox="0 0 160 170">
+      <g transform="rotate(-18 118 140)"><ellipse cx="128" cy="142" rx="30" ry="15" fill="#7d4e30"/>
+        <path d="M110 136 L146 148 M112 146 L142 138 M120 132 L134 154 M132 130 L120 154" stroke="#5f3a22" stroke-width="2" opacity=".7"/></g>
+      <ellipse cx="80" cy="118" rx="44" ry="46" fill="#a8704a"/>
+      <ellipse cx="80" cy="126" rx="26" ry="32" fill="#e8c9a0"/>
+      <ellipse cx="58" cy="160" rx="14" ry="7" fill="#7d4e30"/><ellipse cx="102" cy="160" rx="14" ry="7" fill="#7d4e30"/>
+      <circle cx="46" cy="42" r="14" fill="#a8704a"/><circle cx="46" cy="42" r="7" fill="#e8c9a0"/>
+      <circle cx="114" cy="42" r="14" fill="#a8704a"/><circle cx="114" cy="42" r="7" fill="#e8c9a0"/>
+      <circle cx="80" cy="68" r="42" fill="#a8704a"/>
+      <ellipse cx="80" cy="84" rx="26" ry="19" fill="#e8c9a0"/>
+      <ellipse cx="80" cy="74" rx="9" ry="6" fill="#3b261a"/>
+      <circle cx="60" cy="62" r="6" fill="#23424d"/><circle cx="62" cy="60" r="2" fill="#fff"/>
+      <circle cx="100" cy="62" r="6" fill="#23424d"/><circle cx="102" cy="60" r="2" fill="#fff"/>
+      <ellipse cx="48" cy="80" rx="7" ry="4.5" fill="#ff6f91" opacity=".5"/><ellipse cx="112" cy="80" rx="7" ry="4.5" fill="#ff6f91" opacity=".5"/>
+      <path d="M72 82 Q80 90 88 82" stroke="#3b261a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <rect x="73" y="86" width="7" height="11" rx="2.5" fill="#fff" stroke="#d9c9ae" stroke-width="1"/>
+      <rect x="80" y="86" width="7" height="11" rx="2.5" fill="#fff" stroke="#d9c9ae" stroke-width="1"/>
+    </symbol>
+    <symbol id="bottle-sym" viewBox="0 0 120 150">
+      <rect x="46" y="4" width="28" height="18" rx="4" fill="#c98f5a"/>
+      <path d="M46 22 H74 V40 Q104 52 104 84 V126 Q104 144 86 144 H34 Q16 144 16 126 V84 Q16 52 46 40Z" fill="#e5f7fb" stroke="#ffffff" stroke-width="3" opacity=".95"/>
+      <rect x="40" y="58" width="40" height="70" rx="6" fill="#fffaf0" stroke="#ff8a5c" stroke-width="2.5"/>
+      <path d="M46 72 H74 M46 84 H74 M46 96 H66" stroke="#ffb998" stroke-width="3" stroke-linecap="round"/>
+      <path d="M60 104 l5 -6 l5 6 l-5 10z" fill="#ff6f91" opacity="0"/>
+      <path d="M26 70 Q24 90 28 110" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".8"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="bubbles" aria-hidden="true"></div>
+
+<main class="wrap" id="scene">
+  <header class="hero">
+    <div class="eyebrow">Six months of us</div>
+    <h1>Psst, fish. You've got mail.</h1>
+    <p class="sub">A beaver and a fish have something to ask you.</p>
+  </header>
+
+  <div class="pair" style="position:relative">
+    <button id="fish" aria-label="Say hi to the fish"><svg viewBox="0 0 170 130"><use href="#fish-sym"/></svg></button>
+    <button id="beaver" aria-label="Say hi to the beaver"><svg viewBox="0 0 160 170"><use href="#beaver-sym"/></svg></button>
+  </div>
+
+  <div class="bottle-zone" id="bottleZone">
+    <button class="bottle" id="bottle" aria-label="Open the message in the bottle"><svg width="96" viewBox="0 0 120 150"><use href="#bottle-sym"/></svg></button>
+    <div class="hint">Tap the bottle to open it<small>(you can poke the fish and beaver too)</small></div>
+  </div>
+
+  <section id="letter" hidden>
+    <div class="paper">
+      <h2>Dear Fish,</h2>
+      <p class="lead">Six months of being your fish and having you be mine. That deserves a proper dinner, so I'm taking you out to celebrate.</p>
+      <div class="facts">
+        <div class="fact"><span class="k">When</span><span class="v">Tuesday, 17 November<small>7:00 PM, Jakarta time</small></span></div>
+        <div class="fact"><span class="k">Where</span><span class="v"><a id="mapLink" href="https://www.google.com/maps/search/?api=1&query=Emilia+The+Breeze+BSD" target="_blank" rel="noopener">Emilia, The Breeze BSD</a><small>Tap the name for directions</small></span></div>
+        <div class="fact"><span class="k">Bring</span><span class="v">Your appetite and your best fish face</span></div>
+      </div>
+      <div class="countlabel" id="countLabel">Time until we eat</div>
+      <div class="count" id="count" aria-live="off">
+        <div><b id="cd">0</b><span>days</span></div><div><b id="ch">0</b><span>hours</span></div><div><b id="cm">0</b><span>min</span></div><div><b id="cs">0</b><span>sec</span></div>
+      </div>
+      <p style="text-align:center;margin-top:22px;font-family:var(--font-display);font-weight:600;font-size:19px">So, will you join me?</p>
+      <div class="rsvp" id="rsvp">
+        <button class="btn" id="yes">Yes, I'll be there 🐟</button>
+        <button class="btn" id="maybe">Maybe</button>
+      </div>
+      <div class="sig">Love, Keva</div>
+    </div>
+  </section>
+
+  <section id="done" hidden>
+    <div class="paper">
+      <div class="pairsmall"><svg viewBox="0 0 170 130"><use href="#fish-sym"/></svg><svg viewBox="0 0 160 170"><use href="#beaver-sym"/></svg><span class="heart">💗</span></div>
+      <h2>It's a date!</h2>
+      <p>Tuesday, 17 November at 7:00 PM, Emilia, The Breeze BSD. Save it so it doesn't float away.</p>
+      <div class="actions">
+        <a class="btn solid" id="calLink" target="_blank" rel="noopener" href="#">Add to my calendar</a>
+        <a class="btn ghost" id="mapLink2" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Emilia+The+Breeze+BSD">Open in Maps</a>
+      </div>
+      <p class="tiny">Tap the fish and beaver again. They like attention.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var TARGET = new Date("2026-11-17T19:00:00+07:00").getTime();
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $ = function(id){return document.getElementById(id)};
+
+  // ---- sound (starts only after a tap) ----
+  var ctx = null;
+  function tone(freq, dur, type, when, vol){
+    try{
+      ctx = ctx || new (window.AudioContext||window.webkitAudioContext)();
+      var t = ctx.currentTime + (when||0), o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type||"sine"; o.frequency.setValueAtTime(freq,t);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.12,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+dur+0.05);
+    }catch(e){}
+  }
+  function pop(){ tone(520+Math.random()*300,0.12,"sine",0,0.1); }
+  function chime(){ [523,659,784,1047].forEach(function(f,i){tone(f,0.5,"triangle",i*0.12,0.1)}); }
+
+  // ---- bubbles ----
+  var bubbles = $("bubbles");
+  function makeBubble(x, size){
+    if(reduce) return;
+    var b = document.createElement("div"); b.className = "bub";
+    var s = size || (10+Math.random()*26);
+    b.style.width = b.style.height = s+"px";
+    b.style.left = (x!=null ? x : Math.random()*window.innerWidth)+"px";
+    b.style.setProperty("--dx", (Math.random()*60-30)+"px");
+    b.style.animationDuration = (7+Math.random()*7)+"s";
+    bubbles.appendChild(b);
+    setTimeout(function(){b.remove()},15000);
+  }
+  for(var i=0;i<14;i++){ (function(i){setTimeout(function(){makeBubble()},i*350)})(i); }
+  setInterval(function(){ if(!document.hidden) makeBubble(); },1100);
+  document.addEventListener("pointerdown", function(e){ makeBubble(e.clientX, 14+Math.random()*10); });
+
+  // ---- emoji bursts ----
+  function burst(list, n, ox, oy){
+    if(reduce) n = Math.min(n,6);
+    for(var i=0;i<n;i++){
+      var el = document.createElement("div"); el.className = "float-emoji";
+      el.textContent = list[Math.floor(Math.random()*list.length)];
+      el.style.left = ox+"px"; el.style.top = oy+"px";
+      var a = Math.random()*Math.PI*2, d = 90+Math.random()*180;
+      el.style.setProperty("--dx", Math.cos(a)*d+"px");
+      el.style.setProperty("--dy", (Math.sin(a)*d-120)+"px");
+      el.style.setProperty("--r", (Math.random()*80-40)+"deg");
+      el.style.fontSize = (20+Math.random()*22)+"px";
+      document.body.appendChild(el);
+      setTimeout((function(e){return function(){e.remove()}})(el),2600);
+    }
+  }
+
+  // ---- fish & beaver poke ----
+  var fishLines = ["blub blub","glub 💕","hi fish!","swim with me","blub?"];
+  var beaverLines = ["chomp!","hi fish!","*gnaws a log*","slap! (tail)","I built this"];
+  var wrapper = document.querySelector(".pair");
+  function say(btn, lines){
+    btn.classList.remove("wiggle"); void btn.offsetWidth; btn.classList.add("wiggle");
+    var r = btn.getBoundingClientRect(), w = wrapper.getBoundingClientRect();
+    var s = document.createElement("div"); s.className = "bubble-say";
+    s.textContent = lines[Math.floor(Math.random()*lines.length)];
+    s.style.left = (r.left - w.left + r.width/2)+"px"; s.style.top = (r.top - w.top - 8)+"px";
+    wrapper.appendChild(s); setTimeout(function(){s.remove()},1400);
+    pop();
+    var rr = btn.getBoundingClientRect();
+    burst(["🫧","💕"], 4, rr.left+rr.width/2, rr.top+rr.height/3);
+  }
+  $("fish").addEventListener("click", function(){ say($("fish"), fishLines); });
+  $("beaver").addEventListener("click", function(){ say($("beaver"), beaverLines); });
+
+  // ---- open the bottle ----
+  $("bottle").addEventListener("click", function(){
+    pop(); setTimeout(pop,90);
+    var r = $("bottle").getBoundingClientRect();
+    burst(["🫧","✨","🐟"], 10, r.left+r.width/2, r.top+r.height/2);
+    $("bottleZone").hidden = true;
+    $("letter").hidden = false;
+    setTimeout(function(){ $("letter").scrollIntoView({behavior: reduce?"auto":"smooth", block:"start"}); }, 80);
+    tick();
+  });
+
+  // ---- countdown ----
+  function pad(n){return String(n)}
+  function tick(){
+    var diff = TARGET - Date.now();
+    if(diff <= 0){
+      $("countLabel").textContent = "It's dinner time, fish!";
+      ["cd","ch","cm","cs"].forEach(function(id){$(id).textContent="0"});
+      return;
+    }
+    var s = Math.floor(diff/1000);
+    $("cd").textContent = pad(Math.floor(s/86400));
+    $("ch").textContent = pad(Math.floor(s%86400/3600));
+    $("cm").textContent = pad(Math.floor(s%3600/60));
+    $("cs").textContent = pad(s%60);
+  }
+  setInterval(tick,1000); tick();
+
+  // ---- runaway Maybe ----
+  var maybe = $("maybe"), yes = $("yes"), rsvp = $("rsvp");
+  var dodges = 0;
+  var maybeLines = ["Maybe","Nope, try again","Too slow, fish","The beaver says no","Are you sure?","Okay that's just rude","Just press yes 🥺","Fine, I'm tiny now"];
+  function dodge(e){
+    if(e){ e.preventDefault(); e.stopPropagation(); }
+    dodges++;
+    maybe.textContent = maybeLines[Math.min(dodges, maybeLines.length-1)];
+    var rw = rsvp.clientWidth, rh = rsvp.clientHeight;
+    var mw = maybe.offsetWidth, mh = maybe.offsetHeight;
+    var yb = yes.getBoundingClientRect(), rb = rsvp.getBoundingClientRect();
+    var tries = 0, x, y;
+    do{
+      x = Math.random()*(rw-mw) + mw/2;           // center x (translate -50%)
+      y = Math.random()*(rh-mh);
+      tries++;
+      var left = rb.left + x - mw/2, top = rb.top + y;
+      var overlap = !(left+mw < yb.left-6 || left > yb.right+6 || top+mh < yb.top-6 || top > yb.bottom+6);
+    }while(overlap && tries < 25);
+    maybe.style.left = x+"px"; maybe.style.top = y+"px";
+    var scale = Math.max(0.6, 1 - dodges*0.05);
+    maybe.style.transform = "scale("+scale+")";
+    yes.style.transform = "scale("+Math.min(1.35, 1+dodges*0.06)+")";
+    maybe.classList.remove("shake"); void maybe.offsetWidth; maybe.classList.add("shake");
+    tone(300-dodges*10, 0.12, "square", 0, 0.05);
+  }
+  maybe.addEventListener("pointerenter", function(e){ if(e.pointerType==="mouse") dodge(e); });
+  maybe.addEventListener("pointerdown", dodge);
+  maybe.addEventListener("click", function(e){ e.preventDefault(); });
+
+  // ---- yes! ----
+  function calendarUrl(){
+    var q = new URLSearchParams({
+      action:"TEMPLATE",
+      text:"6 months dinner with Keva 🐟",
+      dates:"20261117T120000Z/20261117T140000Z",
+      details:"Six months of us. Dinner for two.",
+      location:"Emilia, The Breeze BSD"
+    });
+    return "https://calendar.google.com/calendar/render?"+q.toString();
+  }
+  yes.addEventListener("click", function(){
+    chime();
+    var r = yes.getBoundingClientRect();
+    burst(["🐟","💗","🫧","✨","🦫","🐠"], 34, r.left+r.width/2, r.top+r.height/2);
+    setTimeout(function(){ burst(["🐟","💗","🦫"], 20, window.innerWidth/2, window.innerHeight/2); }, 450);
+    $("letter").hidden = true;
+    $("done").hidden = false;
+    $("calLink").href = calendarUrl();
+    setTimeout(function(){ $("done").scrollIntoView({behavior: reduce?"auto":"smooth", block:"start"}); }, 60);
+  });
+})();
+</script>
