@@ -76,6 +76,19 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
 @keyframes wig{20%{transform:rotate(-8deg) scale(1.06)}50%{transform:rotate(8deg) scale(1.06)}80%{transform:rotate(-4deg)}}
 .dance{animation:dance .5s ease-in-out 6 alternate !important}
 @keyframes dance{from{transform:rotate(-10deg) translateY(0)}to{transform:rotate(10deg) translateY(-14px)}}
+.char .eye{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
+.char .eye:nth-of-type(2){animation-delay:.02s}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+.char .tail{transform-box:fill-box;transform-origin:20% 50%;animation:wag 1.6s ease-in-out infinite}
+@keyframes wag{50%{transform:rotate(10deg)}}
+.char .bow{transform-box:fill-box;transform-origin:center;animation:bowp 2.6s ease-in-out infinite}
+@keyframes bowp{50%{transform:scale(1.12)}}
+.trail{position:fixed;z-index:45;pointer-events:none;font-size:16px;animation:trail 1s ease-out forwards;translate:-50% -50%}
+@keyframes trail{to{opacity:0;transform:translateY(-34px) scale(.5)}}
+.fact-tip{margin-top:16px;text-align:center;font-size:14px;color:var(--ink-soft);font-weight:600;min-height:44px;transition:opacity .4s}
+.fact-tip b{font-family:var(--font-display);color:var(--beaver-dark)}
+.rise{position:fixed;bottom:-30px;z-index:49;pointer-events:none;animation:riseh linear forwards}
+@keyframes riseh{to{transform:translate(var(--dx,0),-115vh) rotate(var(--r,0deg))}}
 .bubble-say{position:absolute;pointer-events:none;font-family:var(--font-display);font-weight:600;font-size:14px;background:#fff;color:var(--ink);padding:5px 11px;border-radius:14px;box-shadow:0 4px 12px rgba(19,71,90,.2);animation:sayup 1.3s ease forwards;white-space:nowrap;z-index:5}
 @keyframes sayup{0%{opacity:0;transform:translate(-50%,6px)}15%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-22px)}}
 .ripple{position:fixed;width:20px;height:20px;border:3px solid rgba(255,255,255,.9);border-radius:50%;pointer-events:none;z-index:40;translate:-50% -50%;animation:rip .9s ease-out forwards}
@@ -158,6 +171,7 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
 @keyframes crossrev{from{transform:translateX(60px)}to{transform:translateX(calc(-100vw - 60px))}}
 
 @media (prefers-reduced-motion:reduce){
+  .char .eye,.char .tail,.char .bow{animation:none}
   #fish,#beaver,.bottle,.heart,.rays,.weed,#yes,.bottle::after{animation:none}
   .paper,.paper>*,.hero>*{animation:none}
   .bub,.swimmer{display:none}
@@ -175,23 +189,23 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
       <path d="M96 40 Q106 66 96 92" stroke="#f2663a" stroke-width="5" stroke-linecap="round" fill="none"/>
       <path d="M112 46 Q120 66 112 86" stroke="#f2663a" stroke-width="5" stroke-linecap="round" fill="none"/>
       <path d="M84 78 Q104 78 98 98 Q80 96 84 78Z" fill="#f2663a"/>
-      <circle cx="50" cy="56" r="12" fill="#fff"/><circle cx="53" cy="57" r="7" fill="#23424d"/><circle cx="55" cy="54" r="2.4" fill="#fff"/>
+      <g class="eye"><circle cx="50" cy="56" r="12" fill="#fff"/><circle cx="53" cy="57" r="7" fill="#23424d"/><circle cx="55" cy="54" r="2.4" fill="#fff"/></g><g class="bow"><ellipse cx="80" cy="24" rx="11" ry="7" fill="#ff6f91" transform="rotate(-20 80 24)"/><ellipse cx="98" cy="22" rx="11" ry="7" fill="#ff6f91" transform="rotate(20 98 22)"/><circle cx="89" cy="23" r="5" fill="#ff98b0"/></g>
       <ellipse cx="34" cy="76" rx="8" ry="5" fill="#ff6f91" opacity=".55"/>
       <path d="M22 70 Q30 82 42 74" stroke="#23424d" stroke-width="3.5" stroke-linecap="round" fill="none"/>
     </symbol>
     <symbol id="beaver-sym" viewBox="0 0 160 170">
-      <g transform="rotate(-18 118 140)"><ellipse cx="128" cy="142" rx="30" ry="15" fill="#7d4e30"/>
-        <path d="M110 136 L146 148 M112 146 L142 138 M120 132 L134 154 M132 130 L120 154" stroke="#5f3a22" stroke-width="2" opacity=".7"/></g>
+      <g class="tail"><g transform="rotate(-18 118 140)"><ellipse cx="128" cy="142" rx="30" ry="15" fill="#7d4e30"/>
+        <path d="M110 136 L146 148 M112 146 L142 138 M120 132 L134 154 M132 130 L120 154" stroke="#5f3a22" stroke-width="2" opacity=".7"/></g></g>
       <ellipse cx="80" cy="118" rx="44" ry="46" fill="#a8704a"/>
       <ellipse cx="80" cy="126" rx="26" ry="32" fill="#e8c9a0"/>
-      <ellipse cx="58" cy="160" rx="14" ry="7" fill="#7d4e30"/><ellipse cx="102" cy="160" rx="14" ry="7" fill="#7d4e30"/>
+      <path d="M80 108 L62 100 L62 118Z M80 108 L98 100 L98 118Z" fill="#ff6f91"/><circle cx="80" cy="108" r="5" fill="#ff98b0"/><ellipse cx="58" cy="160" rx="14" ry="7" fill="#7d4e30"/><ellipse cx="102" cy="160" rx="14" ry="7" fill="#7d4e30"/>
       <circle cx="46" cy="42" r="14" fill="#a8704a"/><circle cx="46" cy="42" r="7" fill="#e8c9a0"/>
       <circle cx="114" cy="42" r="14" fill="#a8704a"/><circle cx="114" cy="42" r="7" fill="#e8c9a0"/>
       <circle cx="80" cy="68" r="42" fill="#a8704a"/>
       <ellipse cx="80" cy="84" rx="26" ry="19" fill="#e8c9a0"/>
       <ellipse cx="80" cy="74" rx="9" ry="6" fill="#3b261a"/>
-      <circle cx="60" cy="62" r="6" fill="#23424d"/><circle cx="62" cy="60" r="2" fill="#fff"/>
-      <circle cx="100" cy="62" r="6" fill="#23424d"/><circle cx="102" cy="60" r="2" fill="#fff"/>
+      <g class="eye"><circle cx="60" cy="62" r="6" fill="#23424d"/><circle cx="62" cy="60" r="2" fill="#fff"/></g>
+      <g class="eye"><circle cx="100" cy="62" r="6" fill="#23424d"/><circle cx="102" cy="60" r="2" fill="#fff"/></g>
       <ellipse cx="48" cy="80" rx="7" ry="4.5" fill="#ff6f91" opacity=".5"/><ellipse cx="112" cy="80" rx="7" ry="4.5" fill="#ff6f91" opacity=".5"/>
       <path d="M72 82 Q80 90 88 82" stroke="#3b261a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
       <rect x="73" y="86" width="7" height="11" rx="2.5" fill="#fff" stroke="#d9c9ae" stroke-width="1"/>
@@ -235,8 +249,8 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
   </header>
 
   <div class="pair" id="pair">
-    <button id="fish" aria-label="Say hi to the fish"><svg viewBox="0 0 170 130"><use href="#fish-sym"/></svg></button>
-    <button id="beaver" aria-label="Say hi to the beaver"><svg viewBox="0 0 160 170"><use href="#beaver-sym"/></svg></button>
+    <button id="fish" aria-label="Say hi to the fish"><svg class="char" data-sym="fish-sym" viewBox="0 0 170 130"></svg></button>
+    <button id="beaver" aria-label="Say hi to the beaver"><svg class="char" data-sym="beaver-sym" viewBox="0 0 160 170"></svg></button>
   </div>
 
   <div class="bottle-zone" id="bottleZone">
@@ -259,6 +273,7 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
           <div><b id="cd">0</b><span>days</span></div><div><b id="ch">0</b><span>hours</span></div><div><b id="cm">0</b><span>min</span></div><div><b id="cs">0</b><span>sec</span></div>
         </div>
       </div>
+      <div class="fact-tip" id="factTip" aria-live="off"></div>
       <div class="q">So, will you join me?</div>
       <div class="rsvp" id="rsvp">
         <button class="btn" id="yes">Yes, I'll be there 🐟</button>
@@ -270,7 +285,7 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
 
   <section id="done" hidden>
     <div class="paper">
-      <div class="pairsmall"><svg viewBox="0 0 170 130"><use href="#fish-sym"/></svg><svg viewBox="0 0 160 170"><use href="#beaver-sym"/></svg><span class="heart">💗</span></div>
+      <div class="pairsmall"><svg class="char" data-sym="fish-sym" viewBox="0 0 170 130"></svg><svg class="char" data-sym="beaver-sym" viewBox="0 0 160 170"></svg><span class="heart">💗</span></div>
       <h2>It's a date!</h2>
       <p>Tuesday, 17 November at 7:00 PM, Emilia, The Breeze BSD. Save it so it doesn't float away.</p>
       <div class="actions">
@@ -309,7 +324,23 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
       o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+dur+0.05);
     }catch(e){}
   }
-  function pop(){ tone(520+Math.random()*300,0.12,"sine",0,0.1); }
+  function blub(){
+    if(muted) return;
+    try{
+      ctx = ctx || new (window.AudioContext||window.webkitAudioContext)();
+      if(ctx.state==="suspended") ctx.resume();
+      var t=ctx.currentTime, f=380+Math.random()*260, o=ctx.createOscillator(), g=ctx.createGain();
+      o.type="sine"; o.frequency.setValueAtTime(f,t); o.frequency.exponentialRampToValueAtTime(f*2.1,t+0.09);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.13,t+0.015); g.gain.exponentialRampToValueAtTime(0.0001,t+0.14);
+      o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.18);
+    }catch(e){}
+  }
+  function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+  function pop(){ blub(); buzz(12); }
+  // inline copies of the characters so their eyes, tails and bows can animate
+  document.querySelectorAll("svg.char").forEach(function(el){
+    var sym = document.getElementById(el.getAttribute("data-sym")); if(sym) el.innerHTML = sym.innerHTML;
+  });
   function chime(){ [523,659,784,1047,1319].forEach(function(f,i){tone(f,0.55,"triangle",i*0.11,0.1)}); }
   function setMuteUI(){ $("mute").textContent = muted ? "🔇" : "🔊"; $("mute").setAttribute("aria-label", muted?"Turn sound on":"Turn sound off"); }
   setMuteUI();
@@ -380,6 +411,30 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
   $("fish").addEventListener("click", function(){ poke($("fish"), fishLines); });
   $("beaver").addEventListener("click", function(){ poke($("beaver"), beaverLines); });
 
+  // the two chat to each other while you read
+  var chat = [["fish","psst... tell her"],["beaver","I'm nervous 🦫"],["fish","she'll say yes. blub."],["beaver","bring snacks"],["fish","we ARE the snacks"],["beaver","...fair"]];
+  var chatI = 0;
+  function chatter(){
+    if(document.hidden || $("bottleZone").hidden) return;
+    var c = chat[chatI++ % chat.length], btn = $(c[0]);
+    var r = btn.getBoundingClientRect(), w = pair.getBoundingClientRect();
+    var s = document.createElement("div"); s.className="bubble-say"; s.textContent=c[1];
+    s.style.left=(r.left-w.left+r.width/2)+"px"; s.style.top=(r.top-w.top-8)+"px";
+    pair.appendChild(s); setTimeout(function(){s.remove()},1400);
+  }
+  setTimeout(function(){ chatter(); setInterval(chatter,2600); }, 1800);
+
+  // hearts and bubbles follow your finger
+  var lastTrail = 0;
+  if(!reduce){
+    document.addEventListener("pointermove", function(e){
+      var n = Date.now(); if(n-lastTrail < 90) return; lastTrail = n;
+      var t=document.createElement("div"); t.className="trail"; t.textContent=Math.random()<.5?"💗":"🫧";
+      t.style.left=e.clientX+"px"; t.style.top=e.clientY+"px"; document.body.appendChild(t);
+      setTimeout(function(){t.remove()},1050);
+    });
+  }
+
   // characters lean toward the finger or cursor
   if(!reduce){
     document.addEventListener("pointermove", function(e){
@@ -426,6 +481,18 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
     if(today === "2026-11-16"){ chip.textContent="Tomorrow"; chip.hidden=false; $("dayWord").textContent="Tuesday"; }
     else if(today === "2026-11-17"){ chip.textContent="Tonight"; chip.hidden=false; }
   })();
+
+  // ---- fun facts under the countdown ----
+  var facts = [
+    "<b>Fun fact:</b> a beaver's teeth never stop growing. Neither does my appetite for you.",
+    "<b>Fun fact:</b> a group of fish is a school. A group of beavers is a colony. A group of us is dinner.",
+    "<b>Fun fact:</b> beavers slap their tails on the water to get attention. I just send you fish emojis.",
+    "<b>Fun fact:</b> fish say nothing and still manage to be adorable. Beavers say nothing and build dams."
+  ];
+  var factI = 0, tip = $("factTip");
+  function nextFact(){ tip.style.opacity = 0; setTimeout(function(){ tip.innerHTML = facts[factI++ % facts.length]; tip.style.opacity = 1; }, 400); }
+  tip.innerHTML = facts[factI++ % facts.length];
+  setInterval(function(){ if(!$("letter").hidden) nextFact(); }, 6000);
 
   // ---- countdown ----
   function tick(){
@@ -517,7 +584,13 @@ h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0}
   var said = false;
   yes.addEventListener("click", function(){
     if(said) return; said = true;
-    chime();
+    chime(); buzz([40,60,40,60,120]);
+    if(!reduce){ for(var h=0;h<22;h++){ (function(h){ setTimeout(function(){
+      var e=document.createElement("div"); e.className="rise"; e.textContent=["💗","💙","🐟","🦫"][h%4];
+      e.style.left=(Math.random()*95)+"vw"; e.style.fontSize=(20+Math.random()*20)+"px";
+      e.style.setProperty("--dx",(Math.random()*80-40)+"px"); e.style.setProperty("--r",(Math.random()*60-30)+"deg");
+      e.style.animationDuration=(5+Math.random()*4)+"s"; document.body.appendChild(e); setTimeout(function(){e.remove()},9500);
+    }, h*140); })(h); } }
     var r = yes.getBoundingClientRect();
     burst(["🐟","💗","🫧","✨","🦫","🐠"], 34, r.left+r.width/2, r.top+r.height/2);
     setTimeout(function(){ burst(["🐟","💗","🦫"], 20, window.innerWidth/2, window.innerHeight/2); }, 450);
